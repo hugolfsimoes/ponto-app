@@ -1,0 +1,79 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  font-family: Inter, system-ui, -apple-system, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+  color: #f0f0f0;
+  background-color: #303030;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-height: 100vh;
+  background: #303030;
+  user-select: none;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+input,
+select,
+button {
+  font-family: inherit;
+}
+
+input:focus,
+select:focus {
+  border-color: #2e75b6 !important;
+  box-shadow: 0 0 0 3px rgba(46, 117, 182, 0.25) !important;
+}
+
+::selection {
+  background: #2e75b6;
+  color: #fff;
+}
+
+/* Scrollbar customizada */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #2a2a2a;
+}
+::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #777;
+}
+
+/* Spinner de loading */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinner {
+  display: inline-block;
+  width: 13px;
+  height: 13px;
+  border: 2px solid #555;
+  border-top-color: #aaa;
+  border-radius: 50%;
+  animation: spin 0.65s linear infinite;
+  vertical-align: middle;
+  margin-right: 7px;
+  flex-shrink: 0;
+}

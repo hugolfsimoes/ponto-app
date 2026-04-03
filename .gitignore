@@ -1,0 +1,47 @@
+# Dependencies
+node_modules/
+
+# Build outputs
+out/
+dist/
+dist-electron/
+
+# electron-builder output
+release/
+
+# Vite cache
+.vite/
+
+# TypeScript
+*.tsbuildinfo
+
+# Ferramentas / testes
+.eslintcache
+coverage/
+
+# Certificados de assinatura (Windows/macOS) — nunca versionar
+*.pfx
+*.p12
+*.cer
+
+# Environment
+.env
+.env.*
+!.env.example
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+
+# pnpm
+.pnpm-store/

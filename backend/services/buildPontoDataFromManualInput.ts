@@ -10,7 +10,7 @@ import type {
   ValidationError,
 } from '../types/ponto'
 import { getDayName, getDaysInMonth } from '../utils/dateUtils'
-import { formatMinutes, toMinutes } from '../utils/timeUtils'
+import { formatMinutes, MINUTES_IN_DAY, normalizeSequentialMinutes } from '../utils/timeUtils'
 
 const FIELD_LABELS: Array<[keyof ManualPontoRecordInput, string]> = [
   ['entrada', 'Entrada'],
@@ -152,9 +152,16 @@ function isChronological(row: {
   fimIntervalo: TimeEntry
   saida: TimeEntry
 }): boolean {
+  const normalized = normalizeSequentialMinutes([
+    row.entrada,
+    row.inicioIntervalo,
+    row.fimIntervalo,
+    row.saida,
+  ])
+
+  const totalPeriodo = normalized[normalized.length - 1] - normalized[0]
   return (
-    toMinutes(row.entrada) <= toMinutes(row.inicioIntervalo) &&
-    toMinutes(row.inicioIntervalo) <= toMinutes(row.fimIntervalo) &&
-    toMinutes(row.fimIntervalo) <= toMinutes(row.saida)
+    totalPeriodo <= MINUTES_IN_DAY &&
+    normalized.every((minutes, index) => index === 0 || minutes > normalized[index - 1])
   )
 }

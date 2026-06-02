@@ -50,6 +50,36 @@ describe('buildPontoDataFromManualInput', () => {
     expect(result.data?.weeks.length).toBeGreaterThan(0)
   })
 
+  it('includes overnight shifts in daily, weekly and monthly totals', () => {
+    const result = buildPontoDataFromManualInput(
+      header,
+      fullMonth([
+        {
+          dia: 2,
+          entrada: time(18),
+          inicioIntervalo: time(21),
+          fimIntervalo: time(22),
+          saida: time(4),
+        },
+        {
+          dia: 3,
+          entrada: time(22),
+          inicioIntervalo: time(1),
+          fimIntervalo: time(2),
+          saida: time(6),
+        },
+      ]),
+    )
+
+    expect(result.success).toBe(true)
+    expect(result.data?.records[1].minutesTrabalhados).toBe(540)
+    expect(result.data?.records[2].minutesTrabalhados).toBe(420)
+    expect(result.data?.weeks[0].totalMinutos).toBe(480 + 540 + 420 + 4 * 480)
+    expect(result.data?.weeks[0].totalFormatado).toBe('56:00')
+    expect(result.data?.totalMensalMinutos).toBe(26 * 480 + 540 + 420)
+    expect(result.data?.totalMensalFormatado).toBe('224:00')
+  })
+
   it('marks folga days with zero minutes', () => {
     const result = buildPontoDataFromManualInput(
       header,

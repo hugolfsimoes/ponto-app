@@ -1,5 +1,5 @@
 import type { PontoRecord } from '../types/ponto'
-import { toMinutes } from '../utils/timeUtils'
+import { MINUTES_IN_DAY, normalizeSequentialMinutes } from '../utils/timeUtils'
 
 /**
  * Calcula os minutos trabalhados para um PontoRecord já validado.
@@ -24,10 +24,20 @@ export function calculateHours(record: PontoRecord): number {
     return 0
   }
 
-  const entradaMin = toMinutes(record.entrada)
-  const iiMin = toMinutes(record.inicioIntervalo)
-  const fiMin = toMinutes(record.fimIntervalo)
-  const saidaMin = toMinutes(record.saida)
+  const [entradaMin, iiMin, fiMin, saidaMin] = normalizeSequentialMinutes([
+    record.entrada,
+    record.inicioIntervalo,
+    record.fimIntervalo,
+    record.saida,
+  ])
+
+  const totalPeriodo = saidaMin - entradaMin
+  if (totalPeriodo > MINUTES_IN_DAY) {
+    throw new Error(
+      `Dia ${record.dia}: jornada normalizada excede 24 horas (${totalPeriodo} min). ` +
+        'Verifique se os horários estão em ordem lógica.'
+    )
+  }
 
   const trabalhado = (saidaMin - entradaMin) - (fiMin - iiMin)
 

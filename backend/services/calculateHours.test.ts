@@ -20,6 +20,32 @@ describe('calculateHours', () => {
     expect(calculateHours(record())).toBe(480)
   })
 
+  it('calculates worked minutes when the shift ends on the next day', () => {
+    expect(
+      calculateHours(
+        record({
+          entrada: { hora: 18, minuto: 0 },
+          inicioIntervalo: { hora: 21, minuto: 0 },
+          fimIntervalo: { hora: 22, minuto: 0 },
+          saida: { hora: 4, minuto: 0 },
+        }),
+      ),
+    ).toBe(540)
+  })
+
+  it('calculates worked minutes when the interval is after midnight', () => {
+    expect(
+      calculateHours(
+        record({
+          entrada: { hora: 22, minuto: 0 },
+          inicioIntervalo: { hora: 1, minuto: 0 },
+          fimIntervalo: { hora: 2, minuto: 0 },
+          saida: { hora: 6, minuto: 0 },
+        }),
+      ),
+    ).toBe(420)
+  })
+
   it('returns zero for days off', () => {
     expect(calculateHours(record({ folga: true }))).toBe(0)
   })
@@ -28,14 +54,16 @@ describe('calculateHours', () => {
     expect(calculateHours(record({ saida: null }))).toBe(0)
   })
 
-  it('throws when the calculated total is negative', () => {
+  it('throws when the normalized shift is longer than 24 hours', () => {
     expect(() =>
       calculateHours(
         record({
-          entrada: { hora: 18, minuto: 0 },
-          saida: { hora: 8, minuto: 0 },
+          entrada: { hora: 14, minuto: 0 },
+          inicioIntervalo: { hora: 12, minuto: 0 },
+          fimIntervalo: { hora: 13, minuto: 0 },
+          saida: { hora: 17, minuto: 0 },
         }),
       ),
-    ).toThrow('valor negativo')
+    ).toThrow('excede 24 horas')
   })
 })

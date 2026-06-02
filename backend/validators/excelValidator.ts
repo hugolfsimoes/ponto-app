@@ -1,5 +1,5 @@
 import type { PontoRecord, ValidationError } from '../types/ponto'
-import { toMinutes } from '../utils/timeUtils'
+import { MINUTES_IN_DAY, normalizeSequentialMinutes } from '../utils/timeUtils'
 
 const CAMPOS = {
   entrada: 'Entrada',
@@ -55,10 +55,12 @@ function validateOrder(
   saida: NonNullable<PontoRecord['saida']>,
   errors: ValidationError[]
 ): void {
-  const e = toMinutes(entrada)
-  const ii = toMinutes(inicioIntervalo)
-  const fi = toMinutes(fimIntervalo)
-  const s = toMinutes(saida)
+  const [e, ii, fi, s] = normalizeSequentialMinutes([
+    entrada,
+    inicioIntervalo,
+    fimIntervalo,
+    saida,
+  ])
 
   const pares: Array<{ aNome: string; aMin: number; bNome: string; bMin: number }> = [
     { aNome: CAMPOS.entrada, aMin: e, bNome: CAMPOS.inicioIntervalo, bMin: ii },
@@ -81,10 +83,20 @@ function validateOrder(
       })
     }
   }
+
+  const totalPeriodo = s - e
+  if (totalPeriodo > MINUTES_IN_DAY) {
+    errors.push({
+      dia,
+      campo: 'Horários',
+      mensagem: `Dia ${dia}: jornada normalizada excede 24 horas (${totalPeriodo} min). Verifique se os horários estão em ordem lógica.`,
+    })
+  }
 }
 
 function fmt(totalMinutes: number): string {
-  const hh = Math.floor(totalMinutes / 60)
-  const mm = totalMinutes % 60
+  const sameDayMinutes = ((totalMinutes % MINUTES_IN_DAY) + MINUTES_IN_DAY) % MINUTES_IN_DAY
+  const hh = Math.floor(sameDayMinutes / 60)
+  const mm = sameDayMinutes % 60
   return `${String(hh).padStart(2, '0')}:${String(mm).padStart(2, '0')}`
 }

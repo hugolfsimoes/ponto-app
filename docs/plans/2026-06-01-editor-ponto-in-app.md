@@ -30,7 +30,7 @@
 - Create: `backend/services/buildPontoDataFromManualInput.ts`
 - Create: `backend/services/buildPontoDataFromManualInput.test.ts`
 
-- [ ] **Step 1: Add manual input type**
+- [x] **Step 1: Add manual input type**
 
 Add this to `backend/types/ponto.ts` after `PontoRecord`:
 
@@ -45,7 +45,7 @@ export interface ManualPontoRecordInput {
 }
 ```
 
-- [ ] **Step 2: Write failing backend tests**
+- [x] **Step 2: Write failing backend tests**
 
 Create `backend/services/buildPontoDataFromManualInput.test.ts`:
 
@@ -158,13 +158,13 @@ describe('buildPontoDataFromManualInput', () => {
 })
 ```
 
-- [ ] **Step 3: Run test to verify it fails**
+- [x] **Step 3: Run test to verify it fails**
 
 Run: `pnpm test backend/services/buildPontoDataFromManualInput.test.ts`
 
 Expected: FAIL because `buildPontoDataFromManualInput.ts` does not exist.
 
-- [ ] **Step 4: Implement backend builder**
+- [x] **Step 4: Implement backend builder**
 
 Create `backend/services/buildPontoDataFromManualInput.ts`:
 
@@ -330,13 +330,13 @@ function isChronological(row: {
 }
 ```
 
-- [ ] **Step 5: Run backend test**
+- [x] **Step 5: Run backend test**
 
 Run: `pnpm test backend/services/buildPontoDataFromManualInput.test.ts`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit backend builder**
+- [x] **Step 6: Commit backend builder**
 
 ```bash
 git add backend/types/ponto.ts backend/services/buildPontoDataFromManualInput.ts backend/services/buildPontoDataFromManualInput.test.ts
@@ -352,7 +352,7 @@ git commit -m "feat: build ponto data from manual input"
 - Create: `src/renderer/components/pontoEditor.ts`
 - Create: `src/renderer/components/pontoEditor.test.ts`
 
-- [ ] **Step 1: Mirror ponto data types in renderer**
+- [x] **Step 1: Mirror ponto data types in renderer**
 
 Add these interfaces to `src/renderer/types/electron.d.ts` after `PontoHeader`:
 
@@ -386,7 +386,7 @@ generatePdf: (input: { data: unknown; logoPath?: string }) => Promise<PdfResult>
 
 Keep `unknown` for now because Excel and manual paths both flow through this boundary; stronger typing can be added after `PontoData` is mirrored fully.
 
-- [ ] **Step 2: Write failing helper tests**
+- [x] **Step 2: Write failing helper tests**
 
 Create `src/renderer/components/pontoEditor.test.ts`:
 
@@ -450,13 +450,13 @@ describe('pontoEditor helpers', () => {
 })
 ```
 
-- [ ] **Step 3: Run helper test to verify it fails**
+- [x] **Step 3: Run helper test to verify it fails**
 
 Run: `pnpm test src/renderer/components/pontoEditor.test.ts`
 
 Expected: FAIL because `pontoEditor.ts` does not exist.
 
-- [ ] **Step 4: Implement helper module**
+- [x] **Step 4: Implement helper module**
 
 Create `src/renderer/components/pontoEditor.ts`:
 
@@ -564,13 +564,13 @@ export function serializeRowsForManualInput(
 }
 ```
 
-- [ ] **Step 5: Run helper test**
+- [x] **Step 5: Run helper test**
 
 Run: `pnpm test src/renderer/components/pontoEditor.test.ts`
 
 Expected: PASS.
 
-- [ ] **Step 6: Commit renderer helpers**
+- [x] **Step 6: Commit renderer helpers**
 
 ```bash
 git add src/renderer/types/electron.d.ts src/renderer/components/pontoEditor.ts src/renderer/components/pontoEditor.test.ts
@@ -586,7 +586,7 @@ git commit -m "feat: add ponto editor helpers"
 - Modify: `src/main/ipc/handlers.ts`
 - Modify: `src/renderer/types/electron.d.ts`
 
-- [ ] **Step 1: Add preload API**
+- [x] **Step 1: Add preload API**
 
 In `src/preload/index.ts`, add this method to `pontoAPI` after `processExcel`:
 
@@ -595,7 +595,7 @@ buildPontoData: (input: unknown): Promise<unknown> =>
   ipcRenderer.invoke('build-ponto-data', input),
 ```
 
-- [ ] **Step 2: Add renderer API typing**
+- [x] **Step 2: Add renderer API typing**
 
 In `src/renderer/types/electron.d.ts`, add:
 
@@ -617,7 +617,7 @@ buildPontoData: (input: {
 }) => Promise<BuildPontoDataResult>
 ```
 
-- [ ] **Step 3: Register IPC handler**
+- [x] **Step 3: Register IPC handler**
 
 In `src/main/ipc/handlers.ts`, import the service:
 
@@ -645,13 +645,13 @@ ipcMain.handle('build-ponto-data', async (_event, input: { header: PontoHeader; 
 })
 ```
 
-- [ ] **Step 4: Run focused tests**
+- [x] **Step 4: Run focused tests**
 
 Run: `pnpm test backend/services/buildPontoDataFromManualInput.test.ts src/renderer/components/pontoEditor.test.ts`
 
 Expected: PASS.
 
-- [ ] **Step 5: Commit IPC bridge**
+- [x] **Step 5: Commit IPC bridge**
 
 ```bash
 git add src/preload/index.ts src/main/ipc/handlers.ts src/renderer/types/electron.d.ts
@@ -666,7 +666,7 @@ git commit -m "feat: expose manual ponto data builder"
 - Modify: `src/renderer/components/PontoTab.tsx`
 - Modify: `src/renderer/components/PontoTab.test.tsx`
 
-- [ ] **Step 1: Extend operation state**
+- [x] **Step 1: Extend operation state**
 
 In `src/renderer/components/PontoTab.tsx`, change:
 
@@ -680,7 +680,7 @@ to:
 type Operacao = 'planilha' | 'excel' | 'pdf' | 'validacao'
 ```
 
-- [ ] **Step 2: Import editor helpers and result type**
+- [x] **Step 2: Import editor helpers and result type**
 
 Update imports:
 
@@ -704,7 +704,7 @@ import {
 } from './pontoEditor'
 ```
 
-- [ ] **Step 3: Add editor state**
+- [x] **Step 3: Add editor state**
 
 Inside `PontoTab`, add:
 
@@ -725,7 +725,7 @@ useEffect(() => {
 }, [mes, selectedEmployeeId, selectedOrganizationId])
 ```
 
-- [ ] **Step 4: Add manual PDF action**
+- [x] **Step 4: Add manual PDF action**
 
 Add this function before `handleGerarPlanilha`:
 
@@ -800,7 +800,7 @@ async function handleGerarPdfDireto(): Promise<void> {
 }
 ```
 
-- [ ] **Step 5: Add editor controls to JSX**
+- [x] **Step 5: Add editor controls to JSX**
 
 Replace the current stepper and button block with:
 
@@ -897,7 +897,7 @@ Replace the current stepper and button block with:
 
 When moving the existing Excel buttons inside the `<details>`, keep their existing handlers unchanged.
 
-- [ ] **Step 6: Add styles**
+- [x] **Step 6: Add styles**
 
 Add these keys to the `s` object:
 
@@ -941,7 +941,7 @@ excelDetails: {
 },
 ```
 
-- [ ] **Step 7: Update status labels**
+- [x] **Step 7: Update status labels**
 
 In all status label maps, add:
 
@@ -955,7 +955,7 @@ For error titles, add:
 validacao: 'Erro ao validar grade'
 ```
 
-- [ ] **Step 8: Update static render test**
+- [x] **Step 8: Update static render test**
 
 In `src/renderer/components/PontoTab.test.tsx`, add:
 
@@ -971,13 +971,13 @@ it('renders the in-app editor actions', () => {
 })
 ```
 
-- [ ] **Step 9: Run renderer tests**
+- [x] **Step 9: Run renderer tests**
 
 Run: `pnpm test src/renderer/components/PontoTab.test.tsx src/renderer/components/pontoEditor.test.ts`
 
 Expected: PASS.
 
-- [ ] **Step 10: Commit UI**
+- [x] **Step 10: Commit UI**
 
 ```bash
 git add src/renderer/components/PontoTab.tsx src/renderer/components/PontoTab.test.tsx
@@ -991,19 +991,21 @@ git commit -m "feat: add in-app ponto editor"
 **Files:**
 - Review: all changed files
 
-- [ ] **Step 1: Run full test suite**
+- [x] **Step 1: Run full test suite**
 
 Run: `pnpm test`
 
 Expected: all tests pass.
 
-- [ ] **Step 2: Run production build**
+- [x] **Step 2: Run production build**
 
 Run: `pnpm build`
 
 Expected: Electron Vite build completes successfully.
 
 - [ ] **Step 3: Manual smoke test**
+
+Not executed in this run because it requires launching the Electron UI and interacting with native save dialogs.
 
 Run: `pnpm dev`
 
@@ -1017,6 +1019,8 @@ Expected manual behavior:
 - Expand "Usar planilha Excel" and confirm the legacy buttons are still visible.
 
 - [ ] **Step 4: Commit final polish if needed**
+
+Not needed in this run. Automated verification passed without follow-up fixes.
 
 If verification requires small fixes:
 

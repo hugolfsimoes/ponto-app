@@ -45,4 +45,14 @@ describe('PontoTab', () => {
     expect(shouldShowNoEmployeesHint(organization.id, [])).toBe(true)
     expect(shouldShowNoEmployeesHint(organization.id, [employee])).toBe(false)
   })
+
+  it('renders the in-app editor actions', () => {
+    const html = renderToStaticMarkup(
+      <PontoTab organizations={[organization]} employees={[employee]} />,
+    )
+
+    expect(html).toContain('Aplicar horário padrão')
+    expect(html).toContain('Gerar PDF')
+    expect(html).toContain('Usar planilha Excel')
+  })
 })

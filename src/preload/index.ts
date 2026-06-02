@@ -13,6 +13,9 @@ const pontoAPI = {
   processExcel: (filePath: string): Promise<unknown> =>
     ipcRenderer.invoke('process-excel', filePath),
 
+  buildPontoData: (input: unknown): Promise<unknown> =>
+    ipcRenderer.invoke('build-ponto-data', input),
+
   generatePdf: (data: unknown): Promise<unknown> =>
     ipcRenderer.invoke('generate-pdf', data),
 

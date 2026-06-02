@@ -12,6 +12,20 @@ export interface PontoHeader {
   ano: number
 }
 
+export interface TimeEntry {
+  hora: number
+  minuto: number
+}
+
+export interface ManualPontoRecordInput {
+  dia: number
+  entrada: TimeEntry | null
+  inicioIntervalo: TimeEntry | null
+  fimIntervalo: TimeEntry | null
+  saida: TimeEntry | null
+  folga: boolean
+}
+
 export interface Organization {
   id: string
   nome: string
@@ -50,6 +64,13 @@ export interface ProcessResult {
   errors?: Array<{ dia: number; campo: string; mensagem: string }>
 }
 
+export interface BuildPontoDataResult {
+  success: boolean
+  data?: unknown
+  error?: string
+  errors?: Array<{ dia: number; campo: string; mensagem: string }>
+}
+
 export interface PdfResult {
   success: boolean
   filePath?: string
@@ -63,6 +84,10 @@ export interface PontoAPI {
     logoPath?: string
   }) => Promise<TemplateResult>
   processExcel: (filePath: string) => Promise<ProcessResult>
+  buildPontoData: (input: {
+    header: PontoHeader
+    records: ManualPontoRecordInput[]
+  }) => Promise<BuildPontoDataResult>
   generatePdf: (input: { data: unknown; logoPath?: string }) => Promise<PdfResult>
   loadLocalData: () => Promise<LocalData>
   selectLogoFile: () => Promise<{ canceled?: boolean; filePath?: string }>

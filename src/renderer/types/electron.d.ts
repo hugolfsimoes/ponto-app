@@ -12,6 +12,20 @@ export interface PontoHeader {
   ano: number
 }
 
+export interface TimeEntry {
+  hora: number
+  minuto: number
+}
+
+export interface ManualPontoRecordInput {
+  dia: number
+  entrada: TimeEntry | null
+  inicioIntervalo: TimeEntry | null
+  fimIntervalo: TimeEntry | null
+  saida: TimeEntry | null
+  folga: boolean
+}
+
 export interface Organization {
   id: string
   nome: string

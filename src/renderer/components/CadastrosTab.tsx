@@ -62,6 +62,14 @@ export function CadastrosTab({
     if (!result.canceled && result.filePath) setOrganizationLogoPath(result.filePath)
   }
 
+  function surfaceBackendError(result: { error?: string }): boolean {
+    if ('error' in result && result.error) {
+      setMessage(result.error)
+      return true
+    }
+    return false
+  }
+
   async function saveOrganization(): Promise<void> {
     if (!canSaveOrganization) return
     await runAction(async () => {
@@ -71,14 +79,14 @@ export function CadastrosTab({
           nome: organizationName,
           logoSourcePath: organizationLogoPath || undefined,
         })
-        assertNoError(result)
+        if (surfaceBackendError(result)) return
         setMessage('Empresa atualizada.')
       } else {
         const result = await window.pontoAPI.createOrganization({
           nome: organizationName,
           logoSourcePath: organizationLogoPath,
         })
-        assertNoError(result)
+        if (surfaceBackendError(result)) return
         setSelectedOrganizationId(result.id)
         setMessage('Empresa cadastrada.')
       }
@@ -91,7 +99,11 @@ export function CadastrosTab({
     if (!window.confirm('Excluir esta empresa e todos os funcionários dela?')) return
     await runAction(async () => {
       const result = await window.pontoAPI.deleteOrganization(id)
-      if (!result.success) throw new Error(result.error ?? 'Não foi possível excluir a empresa.')
+      if (surfaceBackendError(result)) return
+      if (!result.success) {
+        setMessage('Não foi possível excluir a empresa.')
+        return
+      }
       if (selectedOrganizationId === id) setSelectedOrganizationId('')
       await onReload()
       setMessage('Empresa excluída.')
@@ -107,7 +119,7 @@ export function CadastrosTab({
           nome: employeeName,
           setor: employeeSetor,
         })
-        assertNoError(result)
+        if (surfaceBackendError(result)) return
         setMessage('Funcionário atualizado.')
       } else {
         const result = await window.pontoAPI.createEmployee({
@@ -115,7 +127,7 @@ export function CadastrosTab({
           nome: employeeName,
           setor: employeeSetor,
         })
-        assertNoError(result)
+        if (surfaceBackendError(result)) return
         setMessage('Funcionário cadastrado.')
       }
       await onReload()
@@ -127,7 +139,11 @@ export function CadastrosTab({
     if (!window.confirm('Excluir este funcionário?')) return
     await runAction(async () => {
       const result = await window.pontoAPI.deleteEmployee(id)
-      if (!result.success) throw new Error(result.error ?? 'Não foi possível excluir o funcionário.')
+      if (surfaceBackendError(result)) return
+      if (!result.success) {
+        setMessage('Não foi possível excluir o funcionário.')
+        return
+      }
       await onReload()
       setMessage('Funcionário excluído.')
     })
@@ -374,10 +390,6 @@ export function CadastrosTab({
       {message && <div style={s.message}>{message}</div>}
     </div>
   )
-}
-
-function assertNoError<T extends { error?: string }>(result: T): void {
-  if (result.error) throw new Error(result.error)
 }
 
 const s: Record<string, React.CSSProperties> = {

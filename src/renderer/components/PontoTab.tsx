@@ -212,6 +212,15 @@ export function PontoTab({
     setStatus({ tipo: 'idle' })
   }
 
+  if (organizations.length === 0) {
+    return (
+      <p style={s.emptyState}>
+        Nenhuma empresa cadastrada. Abra a aba Cadastros para adicionar a primeira
+        empresa.
+      </p>
+    )
+  }
+
   return (
     <>
       <div style={s.steps}>
@@ -256,6 +265,11 @@ export function PontoTab({
               </option>
             ))}
           </select>
+          {selectedOrganizationId && filteredEmployees.length === 0 && (
+            <p style={s.emptyHint}>
+              Esta empresa ainda não tem funcionários cadastrados.
+            </p>
+          )}
         </div>
 
         <div style={s.campo}>
@@ -565,6 +579,18 @@ const s: Record<string, React.CSSProperties> = {
     display: 'flex',
     flexDirection: 'column',
     gap: '0.65rem',
+  },
+  emptyState: {
+    padding: '0.85rem 1rem',
+    background: '#f2f8ff',
+    border: '1px solid #d9e6f5',
+    borderRadius: '8px',
+    color: '#5f6f84',
+    fontSize: '0.9rem',
+  },
+  emptyHint: {
+    color: '#5f6f84',
+    fontSize: '0.8rem',
   },
   botao: {
     display: 'flex',

@@ -1114,7 +1114,7 @@ git commit -m "feat: apply ponto app branding"
 - Modify: `src/renderer/components/CadastrosTab.tsx`
 - Modify: `src/renderer/styles/global.css` if shared styling is preferred over inline styles.
 
-- [ ] **Step 1: Add empty state in Ponto tab**
+- [x] **Step 1: Add empty state in Ponto tab**
 
 In `PontoTab`, render a clear empty state when `organizations.length === 0`:
 
@@ -1132,7 +1132,7 @@ When an organization has no employees:
 )}
 ```
 
-- [ ] **Step 2: Surface backend errors in Cadastro tab**
+- [x] **Step 2: Surface backend errors in Cadastro tab**
 
 After each create/update/delete call, check whether the returned object has `error`:
 
@@ -1143,7 +1143,7 @@ if ('error' in result && result.error) {
 }
 ```
 
-- [ ] **Step 3: Disable invalid submit buttons**
+- [x] **Step 3: Disable invalid submit buttons**
 
 Disable save organization unless:
 
@@ -1157,7 +1157,7 @@ Disable save employee unless:
 const canSaveEmployee = selectedOrganizationId !== '' && employeeName.trim() !== '' && employeeSetor.trim() !== ''
 ```
 
-- [ ] **Step 4: Build**
+- [x] **Step 4: Build**
 
 Run:
 
@@ -1167,7 +1167,7 @@ pnpm build
 
 Expected: build passes.
 
-- [ ] **Step 5: Commit**
+- [x] **Step 5: Commit**
 
 ```bash
 git add src/renderer/components/PontoTab.tsx src/renderer/components/CadastrosTab.tsx src/renderer/styles/global.css

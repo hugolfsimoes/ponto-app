@@ -7,6 +7,7 @@ import {
   suggestFileName
 } from '../../../backend/services/generateTemplate'
 import { processExcel } from '../../../backend/services/processExcel'
+import { buildPontoDataFromManualInput } from '../../../backend/services/buildPontoDataFromManualInput'
 import { generatePdf } from '../../../backend/services/generatePdf'
 import {
   createEmployee,
@@ -18,7 +19,11 @@ import {
   updateOrganization,
 } from '../../../backend/services/localDataStore'
 import { exportBackupToFile, importBackupFromFile } from '../../../backend/services/backupStore'
-import type { PontoHeader, PontoData } from '../../../backend/types/ponto'
+import type {
+  ManualPontoRecordInput,
+  PontoHeader,
+  PontoData,
+} from '../../../backend/types/ponto'
 
 /** Tenta carregar a logo da empresa. Retorna undefined silenciosamente se não encontrada. */
 async function loadLogo(): Promise<Buffer | undefined> {
@@ -123,6 +128,31 @@ export function registerHandlers(): void {
       return { success: false, error: `Erro ao processar a planilha: ${msg}` }
     }
   })
+
+  ipcMain.handle(
+    'build-ponto-data',
+    async (_event, input: { header: PontoHeader; records: unknown }) => {
+      if (!input || !input.header || !Array.isArray(input.records)) {
+        return {
+          success: false,
+          error: 'Dados invalidos para montagem da folha de ponto',
+        }
+      }
+
+      try {
+        return buildPontoDataFromManualInput(
+          input.header,
+          input.records as ManualPontoRecordInput[],
+        )
+      } catch (err) {
+        const msg = err instanceof Error ? err.message : String(err)
+        return {
+          success: false,
+          error: `Erro ao montar folha de ponto: ${msg}`,
+        }
+      }
+    },
+  )
 
   // ── Fase 6: Geração do PDF ─────────────────────────────────────────────
   ipcMain.handle('generate-pdf', async (event, input: PontoData | { data: PontoData; logoPath?: string }) => {

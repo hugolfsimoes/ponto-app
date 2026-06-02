@@ -18,6 +18,7 @@ asarUnpack:
 
 win:
   executableName: PontoApp
+  icon: resources/pontoapp.png
   # Linux → win32: evita signApp/rcedit via Wine (ver electron.build/multi-platform-build)
   signAndEditExecutable: false
   # Só portable por defeito: NSIS no Linux exige Wine. Instalador: `pnpm run build:win:installer` no Windows.
@@ -37,6 +38,7 @@ linux:
   target:
     - AppImage
     - deb
+  icon: resources/pontoapp.png
   maintainer: electronjs.org
   category: Utility
 

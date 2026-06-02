@@ -1,6 +1,6 @@
-import { JSX, useEffect, useState } from 'react'
+import { CSSProperties, JSX, useEffect, useState } from 'react'
 import type { LocalData } from '../types/electron'
-import logoProtmax from '../../../resources/protmax.jpeg'
+import pontoAppLogo from '../../assets/img/appImage.png'
 import { CadastrosTab } from './CadastrosTab'
 import { PontoTab } from './PontoTab'
 import { AppTab, Tabs } from './Tabs'
@@ -31,14 +31,15 @@ export function TemplateForm(): JSX.Element {
   }, [])
 
   return (
-    <div style={s.container}>
-      <div style={s.card}>
-        <div style={s.header}>
-          <img src={logoProtmax} alt='PROTMAX' style={s.logo} />
-          <div style={s.headerText}>
-            <h1 style={s.titulo}>PROTMAX</h1>
+    <div className='app-shell'>
+      <div className='app-panel'>
+        <header className='app-header'>
+          <img src={pontoAppLogo} alt='Ponto App' className='app-logo' />
+          <div>
+            <h1>Ponto App</h1>
+            <p>Folha de ponto por empresa e funcionário</p>
           </div>
-        </div>
+        </header>
 
         <Tabs activeTab={activeTab} onChange={setActiveTab} />
 
@@ -57,58 +58,14 @@ export function TemplateForm(): JSX.Element {
   )
 }
 
-const s: Record<string, React.CSSProperties> = {
-  container: {
-    display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
-    minHeight: '100vh',
-    padding: '1.5rem 1rem',
-    background: '#303030',
-  },
-  card: {
-    background: '#3d3d3d',
-    borderRadius: '14px',
-    padding: '2rem 1.75rem',
-    width: '100%',
-    maxWidth: '520px',
-    boxShadow: '0 10px 40px rgba(0,0,0,0.5)',
-  },
-  header: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '0.85rem',
-    marginBottom: '1.5rem',
-  },
-  logo: {
-    width: 52,
-    height: 52,
-    objectFit: 'contain',
-    borderRadius: 8,
-    flexShrink: 0,
-    background: '#2a2a2a',
-  },
-  headerText: {
-    display: 'flex',
-    alignItems: 'baseline',
-    gap: '0.75rem',
-    flex: 1,
-    minWidth: 0,
-    flexWrap: 'wrap',
-  },
-  titulo: {
-    fontSize: '1.5rem',
-    fontWeight: 700,
-    color: '#ffffff',
-    letterSpacing: '0.02em',
-  },
+const s: Record<string, CSSProperties> = {
   infoErro: {
     marginBottom: '1rem',
     padding: '0.75rem 0.9rem',
-    background: '#2b1414',
-    border: '1px solid #5c1f1f',
+    background: '#fff1f2',
+    border: '1px solid #fecdd3',
     borderRadius: '7px',
-    color: '#f87171',
+    color: '#be123c',
     fontSize: '0.85rem',
   },
 }

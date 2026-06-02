@@ -1,4 +1,4 @@
-import type { CSSProperties, JSX } from 'react'
+import type { JSX } from 'react'
 
 export type AppTab = 'ponto' | 'cadastros'
 
@@ -9,53 +9,21 @@ interface TabsProps {
 
 export function Tabs({ activeTab, onChange }: TabsProps): JSX.Element {
   return (
-    <div style={styles.tabs}>
+    <div className='tabs' role='tablist' aria-label='Navegação principal'>
       <button
         type='button'
+        className={activeTab === 'ponto' ? 'tab active' : 'tab'}
         onClick={() => onChange('ponto')}
-        disabled={activeTab === 'ponto'}
-        style={{
-          ...styles.tab,
-          ...(activeTab === 'ponto' ? styles.tabActive : {}),
-        }}
       >
         Ponto
       </button>
       <button
         type='button'
+        className={activeTab === 'cadastros' ? 'tab active' : 'tab'}
         onClick={() => onChange('cadastros')}
-        disabled={activeTab === 'cadastros'}
-        style={{
-          ...styles.tab,
-          ...(activeTab === 'cadastros' ? styles.tabActive : {}),
-        }}
       >
         Cadastros
       </button>
     </div>
   )
-}
-
-const styles: Record<string, CSSProperties> = {
-  tabs: {
-    display: 'flex',
-    gap: 8,
-    marginBottom: 24,
-  },
-  tab: {
-    flex: 1,
-    border: '1px solid #505050',
-    borderRadius: 8,
-    background: '#2a2a2a',
-    color: '#f0f0f0',
-    padding: '0.65rem 1rem',
-    fontSize: '0.9rem',
-    fontWeight: 700,
-    cursor: 'pointer',
-  },
-  tabActive: {
-    background: '#2563a8',
-    borderColor: '#2563a8',
-    cursor: 'default',
-  },
 }

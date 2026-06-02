@@ -909,7 +909,7 @@ git commit -m "feat: add ponto and cadastro tabs"
 - Modify: `src/renderer/components/PontoTab.tsx`
 - Modify: `src/renderer/components/CadastrosTab.tsx`
 
-- [ ] **Step 1: Copy the existing app image into build resources**
+- [x] **Step 1: Copy the existing app image into build resources**
 
 Run:
 
@@ -919,7 +919,7 @@ cp src/assets/img/appImage.png resources/pontoapp.png
 
 Expected: `resources/pontoapp.png` exists and contains the same Ponto App logo image as `src/assets/img/appImage.png`.
 
-- [ ] **Step 2: Configure the build to use the app identity asset**
+- [x] **Step 2: Configure the build to use the app identity asset**
 
 Update `electron-builder.yml` so each platform points at the Ponto App image where supported:
 
@@ -942,7 +942,7 @@ linux:
 
 Note: if Electron Builder requires `.ico` for Windows during verification, generate `resources/pontoapp.ico` from the PNG and change `win.icon` to that file.
 
-- [ ] **Step 3: Replace fixed PROTMAX branding in the renderer shell**
+- [x] **Step 3: Replace fixed PROTMAX branding in the renderer shell**
 
 In `src/renderer/components/TemplateForm.tsx`, import the new image:
 
@@ -964,7 +964,7 @@ Render it in the main header instead of the PROTMAX image/title:
 
 Keep organization logos out of this header; they are customer data and belong in generated Excel/PDF output.
 
-- [ ] **Step 4: Apply the Ponto App visual system**
+- [x] **Step 4: Apply the Ponto App visual system**
 
 Update `src/renderer/styles/global.css` with these base tokens and layout styles:
 
@@ -1053,7 +1053,7 @@ select {
 }
 ```
 
-- [ ] **Step 5: Keep tab styling consistent with the brand**
+- [x] **Step 5: Keep tab styling consistent with the brand**
 
 In `src/renderer/components/Tabs.tsx`, use class names instead of bare disabled buttons:
 
@@ -1090,7 +1090,7 @@ Add styles:
 }
 ```
 
-- [ ] **Step 6: Build**
+- [x] **Step 6: Build**
 
 Run:
 
@@ -1100,7 +1100,7 @@ pnpm build
 
 Expected: build passes, renderer uses the new Ponto App image, and no asset import errors occur.
 
-- [ ] **Step 7: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
 git add resources/pontoapp.png src/assets/img/appImage.png electron-builder.yml src/renderer/components/TemplateForm.tsx src/renderer/components/Tabs.tsx src/renderer/components/PontoTab.tsx src/renderer/components/CadastrosTab.tsx src/renderer/styles/global.css

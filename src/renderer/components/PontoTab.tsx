@@ -455,7 +455,7 @@ interface StepDotProps {
 
 function StepDot({ num, label, done, active }: StepDotProps): JSX.Element {
   const dotColor = done ? '#22c55e' : active ? '#2e75b6' : '#484848'
-  const labelColor = done ? '#6ee7b7' : active ? '#93b8d8' : '#666'
+  const labelColor = done ? '#15803d' : active ? '#07346f' : '#7b8796'
   return (
     <div
       style={{
@@ -508,14 +508,14 @@ const s: Record<string, React.CSSProperties> = {
   stepLine: {
     flex: 1,
     height: '2px',
-    background: '#4a4a4a',
+    background: '#d9e6f5',
     maxWidth: '60px',
     margin: '0 4px',
     marginBottom: '18px',
   },
   divider: {
     height: '1px',
-    background: '#4a4a4a',
+    background: '#d9e6f5',
     marginBottom: '1.5rem',
   },
   campos: {
@@ -532,32 +532,34 @@ const s: Record<string, React.CSSProperties> = {
   label: {
     fontSize: '0.78rem',
     fontWeight: 600,
-    color: '#bbb',
+    color: '#5f6f84',
     textTransform: 'uppercase',
     letterSpacing: '0.05em',
   },
   input: {
     width: '100%',
-    background: '#2a2a2a',
-    border: '1.5px solid #505050',
-    borderRadius: '7px',
-    padding: '0.6rem 0.85rem',
+    background: '#ffffff',
+    border: '1px solid #d9e6f5',
+    borderRadius: '8px',
+    padding: '0 12px',
     fontSize: '0.93rem',
-    color: '#f0f0f0',
+    color: '#082f63',
     outline: 'none',
     transition: 'border-color 0.15s, box-shadow 0.15s',
+    minHeight: 40,
   },
   select: {
     width: '100%',
-    background: '#2a2a2a',
-    border: '1.5px solid #505050',
-    borderRadius: '7px',
-    padding: '0.6rem 0.85rem',
+    background: '#ffffff',
+    border: '1px solid #d9e6f5',
+    borderRadius: '8px',
+    padding: '0 12px',
     fontSize: '0.93rem',
-    color: '#f0f0f0',
+    color: '#082f63',
     cursor: 'pointer',
     outline: 'none',
     transition: 'border-color 0.15s, box-shadow 0.15s',
+    minHeight: 40,
   },
   botoes: {
     display: 'flex',
@@ -579,8 +581,8 @@ const s: Record<string, React.CSSProperties> = {
     width: '100%',
   },
   botaoAzul: { background: '#2563a8' },
-  botaoVerde: { background: '#1a6e36' },
-  botaoLaranja: { background: '#b84f00' },
+  botaoVerde: { background: '#15803d' },
+  botaoLaranja: { background: '#c2410c' },
   botaoDesabilitado: {
     opacity: 0.35,
     cursor: 'not-allowed',
@@ -588,20 +590,20 @@ const s: Record<string, React.CSSProperties> = {
   badgeExcel: {
     marginTop: '1rem',
     padding: '0.5rem 0.8rem',
-    background: '#142b1a',
-    border: '1px solid #1f5c2e',
+    background: '#f0fdf4',
+    border: '1px solid #bbf7d0',
     borderRadius: '6px',
-    color: '#4ade80',
+    color: '#15803d',
     fontSize: '0.8rem',
     fontWeight: 500,
   },
   infoLoading: {
     marginTop: '1rem',
     padding: '0.65rem 0.9rem',
-    background: '#2a2a2a',
-    border: '1px solid #505050',
+    background: '#f2f8ff',
+    border: '1px solid #d9e6f5',
     borderRadius: '7px',
-    color: '#bbb',
+    color: '#5f6f84',
     fontSize: '0.85rem',
     display: 'flex',
     alignItems: 'center',
@@ -609,19 +611,19 @@ const s: Record<string, React.CSSProperties> = {
   infoSucesso: {
     marginTop: '1rem',
     padding: '0.75rem 0.9rem',
-    background: '#142b1a',
-    border: '1px solid #1f5c2e',
+    background: '#f0fdf4',
+    border: '1px solid #bbf7d0',
     borderRadius: '7px',
-    color: '#4ade80',
+    color: '#15803d',
     fontSize: '0.85rem',
   },
   infoErro: {
     marginTop: '1rem',
     padding: '0.75rem 0.9rem',
-    background: '#2b1414',
-    border: '1px solid #5c1f1f',
+    background: '#fff1f2',
+    border: '1px solid #fecdd3',
     borderRadius: '7px',
-    color: '#f87171',
+    color: '#be123c',
     fontSize: '0.85rem',
   },
   erroHeader: {
@@ -633,7 +635,7 @@ const s: Record<string, React.CSSProperties> = {
   dismissBtn: {
     background: 'transparent',
     border: 'none',
-    color: '#f87171',
+    color: '#be123c',
     cursor: 'pointer',
     fontSize: '1.2rem',
     lineHeight: 1,

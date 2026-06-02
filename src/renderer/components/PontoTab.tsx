@@ -1,5 +1,6 @@
 import { JSX, useEffect, useMemo, useState } from 'react'
 import type {
+  BuildPontoDataResult,
   Employee,
   Organization,
   PdfResult,
@@ -7,6 +8,14 @@ import type {
   ProcessResult,
   TemplateResult,
 } from '../types/electron'
+import {
+  applyDefaultSchedule,
+  createMonthlyRows,
+  serializeRowsForManualInput,
+  toggleFolga,
+  updateRowTime,
+  type PontoEditorRow,
+} from './pontoEditor'
 
 const ANO_ATUAL = new Date().getFullYear()
 
@@ -25,7 +34,7 @@ const MESES = [
   { valor: 12, nome: 'Dezembro' },
 ]
 
-type Operacao = 'planilha' | 'excel' | 'pdf'
+type Operacao = 'planilha' | 'excel' | 'pdf' | 'validacao'
 
 type Status =
   | { tipo: 'idle' }
@@ -53,6 +62,9 @@ export function PontoTab({
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('')
   const [mes, setMes] = useState(new Date().getMonth() + 1)
   const [excelData, setExcelData] = useState<unknown>(null)
+  const [rows, setRows] = useState<PontoEditorRow[]>(() =>
+    createMonthlyRows(mes, ANO_ATUAL),
+  )
   const [doneOps, setDoneOps] = useState<Set<Operacao>>(new Set())
   const [status, setStatus] = useState<Status>({ tipo: 'idle' })
 
@@ -94,8 +106,82 @@ export function PontoTab({
     }
   }, [employees, selectedEmployeeId, selectedOrganizationId])
 
+  useEffect(() => {
+    setRows(createMonthlyRows(mes, ANO_ATUAL))
+    setExcelData(null)
+    setDoneOps(new Set())
+  }, [mes, selectedEmployeeId, selectedOrganizationId])
+
   function markDone(op: Operacao): void {
     setDoneOps((prev) => new Set([...prev, op]))
+  }
+
+  async function handleGerarPdfDireto(): Promise<void> {
+    if (!selectedOrganization || !selectedEmployee) return
+    setStatus({ tipo: 'loading', operacao: 'validacao' })
+
+    const header: PontoHeader = {
+      empresa: selectedOrganization.nome,
+      nome: selectedEmployee.nome,
+      secao: selectedEmployee.setor,
+      mes,
+      ano: ANO_ATUAL,
+    }
+
+    try {
+      const buildResult = (await window.pontoAPI.buildPontoData({
+        header,
+        records: serializeRowsForManualInput(rows),
+      })) as BuildPontoDataResult
+
+      if (!buildResult.success) {
+        const lista = buildResult.errors?.map((error) => error.mensagem)
+        setStatus({
+          tipo: 'erro',
+          operacao: 'validacao',
+          mensagem:
+            lista && lista.length > 0
+              ? `${lista.length} erro(s) encontrado(s) na grade`
+              : (buildResult.error ?? 'Não foi possível validar a grade.'),
+          lista,
+        })
+        return
+      }
+
+      setStatus({ tipo: 'loading', operacao: 'pdf' })
+
+      const pdfResult = (await window.pontoAPI.generatePdf({
+        data: buildResult.data,
+        logoPath: selectedOrganization.logoPath,
+      })) as PdfResult
+
+      if (pdfResult.canceled) {
+        setStatus({ tipo: 'idle' })
+        return
+      }
+      if (!pdfResult.success) {
+        setStatus({
+          tipo: 'erro',
+          operacao: 'pdf',
+          mensagem: pdfResult.error ?? 'Não foi possível gerar o PDF.',
+        })
+        return
+      }
+
+      markDone('pdf')
+      setStatus({
+        tipo: 'sucesso',
+        operacao: 'pdf',
+        filePath: pdfResult.filePath,
+      })
+    } catch (err) {
+      setStatus({
+        tipo: 'erro',
+        operacao: 'pdf',
+        mensagem:
+          err instanceof Error ? err.message : 'Erro inesperado ao gerar PDF.',
+      })
+    }
   }
 
   async function handleGerarPlanilha(): Promise<void> {
@@ -230,26 +316,6 @@ export function PontoTab({
 
   return (
     <>
-      <div style={s.steps}>
-        <StepDot
-          num={1}
-          label='Planilha'
-          done={doneOps.has('planilha')}
-          active={podeGerarPlanilha}
-        />
-        <div style={s.stepLine} />
-        <StepDot num={2} label='Excel' done={doneOps.has('excel')} active />
-        <div style={s.stepLine} />
-        <StepDot
-          num={3}
-          label='PDF'
-          done={doneOps.has('pdf')}
-          active={podeGerarPdf}
-        />
-      </div>
-
-      <div style={s.divider} />
-
       <div style={s.campos}>
         <div style={s.campo}>
           <label htmlFor='organization' style={s.label}>
@@ -333,10 +399,33 @@ export function PontoTab({
         </div>
       </div>
 
-      <div style={s.botoes}>
+      <div style={s.editorActions}>
         <button
-          onClick={handleGerarPlanilha}
-          disabled={!podeGerarPlanilha}
+          type='button'
+          onClick={() =>
+            setRows((current) =>
+              applyDefaultSchedule(current, {
+                entrada: '08:00',
+                inicioIntervalo: '12:00',
+                fimIntervalo: '13:00',
+                saida: '17:00',
+              }),
+            )
+          }
+          disabled={!selectedEmployee || isLoading}
+          style={{
+            ...s.botao,
+            ...s.botaoAzul,
+            ...(!selectedEmployee || isLoading ? s.botaoDesabilitado : {}),
+          }}
+        >
+          Aplicar horário padrão
+        </button>
+
+        <button
+          type='button'
+          onClick={handleGerarPdfDireto}
+          disabled={!selectedOrganization || !selectedEmployee || isLoading}
           title={
             !selectedOrganization || !selectedEmployee
               ? 'Selecione empresa e funcionário primeiro'
@@ -344,59 +433,139 @@ export function PontoTab({
           }
           style={{
             ...s.botao,
-            ...s.botaoAzul,
-            ...(!podeGerarPlanilha ? s.botaoDesabilitado : {}),
-          }}
-        >
-          {isLoading && status.operacao === 'planilha' ? (
-            <>
-              <span className='spinner' />
-              Gerando…
-            </>
-          ) : (
-            '① Gerar Planilha'
-          )}
-        </button>
-
-        <button
-          onClick={handleSelecionarExcel}
-          disabled={isLoading}
-          style={{
-            ...s.botao,
-            ...s.botaoVerde,
-            ...(isLoading ? s.botaoDesabilitado : {}),
-          }}
-        >
-          {isLoading && status.operacao === 'excel' ? (
-            <>
-              <span className='spinner' />
-              Processando…
-            </>
-          ) : (
-            '② Selecionar Excel'
-          )}
-        </button>
-
-        <button
-          onClick={handleGerarPdf}
-          disabled={!podeGerarPdf}
-          title={!podeGerarPdf ? 'Selecione um Excel primeiro' : ''}
-          style={{
-            ...s.botao,
             ...s.botaoLaranja,
-            ...(!podeGerarPdf ? s.botaoDesabilitado : {}),
+            ...(!selectedOrganization || !selectedEmployee || isLoading
+              ? s.botaoDesabilitado
+              : {}),
           }}
         >
-          {isLoading && status.operacao === 'pdf' ? (
+          {isLoading &&
+          (status.operacao === 'validacao' || status.operacao === 'pdf') ? (
             <>
               <span className='spinner' />
               Gerando PDF…
             </>
           ) : (
-            '③ Gerar PDF'
+            'Gerar PDF'
           )}
         </button>
       </div>
+
+      <div style={s.editorTable}>
+        <div style={s.editorHeaderRow}>
+          <span>Dia</span>
+          <span>Semana</span>
+          <span>Entrada</span>
+          <span>Início Intervalo</span>
+          <span>Fim Intervalo</span>
+          <span>Saída</span>
+          <span>Folga</span>
+        </div>
+        {rows.map((row) => (
+          <div key={row.dia} style={s.editorRow}>
+            <span style={s.dayCell}>{row.dia}</span>
+            <span style={s.weekCell}>{row.diaSemana}</span>
+            {(['entrada', 'inicioIntervalo', 'fimIntervalo', 'saida'] as const).map(
+              (field) => (
+                <input
+                  key={field}
+                  type='text'
+                  inputMode='numeric'
+                  placeholder={row.folga ? 'FOLGA' : 'HH:mm'}
+                  value={row.folga ? 'FOLGA' : row[field]}
+                  disabled={row.folga || !selectedEmployee || isLoading}
+                  onChange={(event) =>
+                    setRows((current) =>
+                      updateRowTime(current, row.dia, field, event.target.value),
+                    )
+                  }
+                  style={s.timeInput}
+                />
+              ),
+            )}
+            <label style={s.folgaCell}>
+              <input
+                type='checkbox'
+                checked={row.folga}
+                disabled={!selectedEmployee || isLoading}
+                onChange={(event) =>
+                  setRows((current) =>
+                    toggleFolga(current, row.dia, event.target.checked),
+                  )
+                }
+              />
+            </label>
+          </div>
+        ))}
+      </div>
+
+      <details style={s.excelDetails}>
+        <summary style={s.excelSummary}>Usar planilha Excel</summary>
+        <div style={s.botoes}>
+          <button
+            onClick={handleGerarPlanilha}
+            disabled={!podeGerarPlanilha}
+            title={
+              !selectedOrganization || !selectedEmployee
+                ? 'Selecione empresa e funcionário primeiro'
+                : ''
+            }
+            style={{
+              ...s.botao,
+              ...s.botaoAzul,
+              ...(!podeGerarPlanilha ? s.botaoDesabilitado : {}),
+            }}
+          >
+            {isLoading && status.operacao === 'planilha' ? (
+              <>
+                <span className='spinner' />
+                Gerando…
+              </>
+            ) : (
+              '① Gerar Planilha'
+            )}
+          </button>
+
+          <button
+            onClick={handleSelecionarExcel}
+            disabled={isLoading}
+            style={{
+              ...s.botao,
+              ...s.botaoVerde,
+              ...(isLoading ? s.botaoDesabilitado : {}),
+            }}
+          >
+            {isLoading && status.operacao === 'excel' ? (
+              <>
+                <span className='spinner' />
+                Processando…
+              </>
+            ) : (
+              '② Selecionar Excel'
+            )}
+          </button>
+
+          <button
+            onClick={handleGerarPdf}
+            disabled={!podeGerarPdf}
+            title={!podeGerarPdf ? 'Selecione um Excel primeiro' : ''}
+            style={{
+              ...s.botao,
+              ...s.botaoLaranja,
+              ...(!podeGerarPdf ? s.botaoDesabilitado : {}),
+            }}
+          >
+            {isLoading && status.operacao === 'pdf' ? (
+              <>
+                <span className='spinner' />
+                Gerando PDF…
+              </>
+            ) : (
+              '③ Gerar PDF'
+            )}
+          </button>
+        </div>
+      </details>
 
       {excelData !== null && (
         <div style={s.badgeExcel}>✓ Planilha carregada — pronta para gerar PDF</div>
@@ -409,6 +578,7 @@ export function PontoTab({
             {
               planilha: 'Gerando planilha…',
               excel: 'Processando arquivo…',
+              validacao: 'Validando grade…',
               pdf: 'Gerando PDF…',
             }[status.operacao]
           }
@@ -422,6 +592,7 @@ export function PontoTab({
               {
                 planilha: '✓ Planilha gerada!',
                 excel: '✓ Arquivo carregado!',
+                validacao: '✓ Grade validada!',
                 pdf: '✓ PDF gerado!',
               }[status.operacao]
             }
@@ -438,6 +609,7 @@ export function PontoTab({
                 {
                   planilha: 'Erro ao gerar planilha',
                   excel: 'Erro ao processar Excel',
+                  validacao: 'Erro ao validar grade',
                   pdf: 'Erro ao gerar PDF',
                 }[status.operacao]
               }
@@ -464,57 +636,6 @@ export function PontoTab({
         </div>
       )}
     </>
-  )
-}
-
-interface StepDotProps {
-  num: number
-  label: string
-  done: boolean
-  active: boolean
-}
-
-function StepDot({ num, label, done, active }: StepDotProps): JSX.Element {
-  const dotColor = done ? '#22c55e' : active ? '#2e75b6' : '#484848'
-  const labelColor = done ? '#15803d' : active ? '#07346f' : '#7b8796'
-  return (
-    <div
-      style={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        gap: '4px',
-      }}
-    >
-      <div
-        style={{
-          width: 28,
-          height: 28,
-          borderRadius: '50%',
-          background: dotColor,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          fontSize: '0.75rem',
-          fontWeight: 700,
-          color: '#fff',
-          transition: 'background 0.2s',
-          flexShrink: 0,
-        }}
-      >
-        {done ? '✓' : num}
-      </div>
-      <span
-        style={{
-          fontSize: '0.7rem',
-          fontWeight: 600,
-          color: labelColor,
-          transition: 'color 0.2s',
-        }}
-      >
-        {label}
-      </span>
-    </div>
   )
 }
 
@@ -586,6 +707,75 @@ const s: Record<string, React.CSSProperties> = {
     display: 'flex',
     flexDirection: 'column',
     gap: '0.65rem',
+  },
+  editorActions: {
+    display: 'grid',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
+    gap: '0.65rem',
+    marginBottom: '1rem',
+  },
+  editorTable: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.35rem',
+    overflowX: 'auto',
+    paddingBottom: '0.25rem',
+  },
+  editorHeaderRow: {
+    display: 'grid',
+    gridTemplateColumns: '44px 92px repeat(4, minmax(92px, 1fr)) 60px',
+    gap: '0.35rem',
+    alignItems: 'center',
+    minWidth: 620,
+    color: '#5f6f84',
+    fontSize: '0.72rem',
+    fontWeight: 700,
+    textTransform: 'uppercase',
+  },
+  editorRow: {
+    display: 'grid',
+    gridTemplateColumns: '44px 92px repeat(4, minmax(92px, 1fr)) 60px',
+    gap: '0.35rem',
+    alignItems: 'center',
+    minWidth: 620,
+  },
+  dayCell: {
+    color: '#082f63',
+    fontSize: '0.86rem',
+    fontWeight: 700,
+  },
+  weekCell: {
+    color: '#5f6f84',
+    fontSize: '0.75rem',
+    fontWeight: 600,
+  },
+  timeInput: {
+    width: '100%',
+    minHeight: 34,
+    border: '1px solid #d9e6f5',
+    borderRadius: '6px',
+    padding: '0 8px',
+    color: '#082f63',
+    fontSize: '0.86rem',
+    outline: 'none',
+  },
+  folgaCell: {
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    minHeight: 34,
+  },
+  excelDetails: {
+    marginTop: '1.25rem',
+    borderTop: '1px solid #d9e6f5',
+    paddingTop: '0.9rem',
+  },
+  excelSummary: {
+    color: '#07346f',
+    cursor: 'pointer',
+    fontSize: '0.86rem',
+    fontWeight: 700,
+    marginBottom: '0.75rem',
   },
   emptyState: {
     padding: '0.85rem 1rem',

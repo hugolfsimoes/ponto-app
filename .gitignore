@@ -19,6 +19,7 @@ release/
 .eslintcache
 coverage/
 .superpowers/
+.worktrees/
 
 # Certificados de assinatura (Windows/macOS) — nunca versionar
 *.pfx

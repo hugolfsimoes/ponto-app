@@ -18,6 +18,7 @@ release/
 # Ferramentas / testes
 .eslintcache
 coverage/
+.superpowers/
 
 # Certificados de assinatura (Windows/macOS) — nunca versionar
 *.pfx

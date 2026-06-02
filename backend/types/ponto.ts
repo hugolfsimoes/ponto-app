@@ -24,6 +24,15 @@ export interface PontoRecord {
   minutesTrabalhados?: number;
 }
 
+export interface ManualPontoRecordInput {
+  dia: number;
+  entrada: TimeEntry | null;
+  inicioIntervalo: TimeEntry | null;
+  fimIntervalo: TimeEntry | null;
+  saida: TimeEntry | null;
+  folga: boolean;
+}
+
 export interface WeekGroup {
   /** Dia do mês (1–31) em que a semana começa. */
   inicio: number;

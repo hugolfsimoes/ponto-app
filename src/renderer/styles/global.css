@@ -85,7 +85,7 @@ select {
 }
 
 .app-shell {
-  max-width: 980px;
+  width: min(96vw, 1280px);
   margin: 0 auto;
   padding: 32px 20px;
 }
@@ -142,6 +142,29 @@ select {
   background: var(--brand-blue-dark);
   border-color: var(--brand-blue-dark);
   color: #ffffff;
+}
+
+.cadastros-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(360px, 1.1fr);
+  gap: 20px;
+  align-items: start;
+}
+
+.cadastros-panel {
+  min-width: 0;
+}
+
+.cadastros-footer {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+@media (max-width: 820px) {
+  .cadastros-layout {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Scrollbar customizada */

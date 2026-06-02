@@ -4,11 +4,15 @@ import { dirname, extname, join } from 'path'
 import type {
   CreateEmployeeInput,
   CreateOrganizationInput,
+  CreateSectionInput,
   Employee,
+  EmployeeDefaultSchedule,
   LocalData,
   Organization,
+  Section,
   UpdateEmployeeInput,
   UpdateOrganizationInput,
+  UpdateSectionInput,
 } from '../types/cadastros'
 
 const DATA_DIR_NAME = 'pontoapp-data'
@@ -29,7 +33,7 @@ export function getLogosDir(): string {
 }
 
 export function emptyLocalData(): LocalData {
-  return { version: 1, organizations: [], employees: [] }
+  return { version: 1, organizations: [], sections: [], employees: [] }
 }
 
 function nowIso(): string {
@@ -44,6 +48,34 @@ function assertText(value: string, label: string): string {
   const trimmed = value.trim()
   if (!trimmed) throw new Error(`${label} e obrigatorio.`)
   return trimmed
+}
+
+const SCHEDULE_FIELDS: Array<keyof EmployeeDefaultSchedule> = [
+  'entrada',
+  'inicioIntervalo',
+  'fimIntervalo',
+  'saida',
+]
+
+function normalizeDefaultSchedule(
+  schedule?: Partial<EmployeeDefaultSchedule>,
+): EmployeeDefaultSchedule | undefined {
+  if (!schedule) return undefined
+  const values = SCHEDULE_FIELDS.map((field) => schedule[field]?.trim() ?? '')
+  if (values.every((value) => value === '')) return undefined
+  if (values.some((value) => value === '')) {
+    throw new Error('Preencha todos os horarios padrao ou deixe todos em branco.')
+  }
+  const invalid = values.some(
+    (value) => !/^([01]\d|2[0-3]):([0-5]\d)$/.test(value),
+  )
+  if (invalid) throw new Error('Horarios padrao devem estar no formato HH:mm.')
+  return {
+    entrada: values[0],
+    inicioIntervalo: values[1],
+    fimIntervalo: values[2],
+    saida: values[3],
+  }
 }
 
 function assertLogoExtension(filePath: string): string {
@@ -69,6 +101,10 @@ export async function loadLocalData(): Promise<LocalData> {
   const parsed = JSON.parse(raw) as LocalData
   if (parsed.version !== 1 || !Array.isArray(parsed.organizations) || !Array.isArray(parsed.employees)) {
     throw new Error('Arquivo de dados local invalido.')
+  }
+  if (!Array.isArray(parsed.sections)) {
+    parsed.sections = []
+    await saveLocalData(parsed)
   }
   return parsed
 }
@@ -131,9 +167,80 @@ export async function deleteOrganization(id: string): Promise<void> {
   const organization = data.organizations.find((item) => item.id === id)
   if (!organization) throw new Error('Empresa nao encontrada.')
   data.organizations = data.organizations.filter((item) => item.id !== id)
+  data.sections = data.sections.filter((item) => item.organizationId !== id)
   data.employees = data.employees.filter((item) => item.organizationId !== id)
   await saveLocalData(data)
   await removeFileIfExists(organization.logoPath)
+}
+
+function assertOrganizationExists(data: LocalData, organizationId: string): void {
+  if (!data.organizations.some((item) => item.id === organizationId)) {
+    throw new Error('Empresa nao encontrada.')
+  }
+}
+
+function assertSectionForOrganization(data: LocalData, organizationId: string, setor: string): string {
+  const trimmed = assertText(setor, 'Secao')
+  const exists = data.sections.some(
+    (section) => section.organizationId === organizationId && section.nome === trimmed,
+  )
+  if (!exists) throw new Error('Secao nao encontrada para esta empresa.')
+  return trimmed
+}
+
+export async function createSection(input: CreateSectionInput): Promise<Section> {
+  const data = await loadLocalData()
+  assertOrganizationExists(data, input.organizationId)
+  const nome = assertText(input.nome, 'Secao')
+  const duplicate = data.sections.some(
+    (section) => section.organizationId === input.organizationId && section.nome === nome,
+  )
+  if (duplicate) throw new Error('Secao ja cadastrada para esta empresa.')
+  const createdAt = nowIso()
+  const section: Section = {
+    id: createId(),
+    organizationId: input.organizationId,
+    nome,
+    createdAt,
+    updatedAt: createdAt,
+  }
+  data.sections.push(section)
+  await saveLocalData(data)
+  return section
+}
+
+export async function updateSection(input: UpdateSectionInput): Promise<Section> {
+  const data = await loadLocalData()
+  const section = data.sections.find((item) => item.id === input.id)
+  if (!section) throw new Error('Secao nao encontrada.')
+  const nome = assertText(input.nome, 'Secao')
+  const duplicate = data.sections.some(
+    (item) => item.id !== input.id && item.organizationId === section.organizationId && item.nome === nome,
+  )
+  if (duplicate) throw new Error('Secao ja cadastrada para esta empresa.')
+  const previousName = section.nome
+  section.nome = nome
+  section.updatedAt = nowIso()
+  for (const employee of data.employees) {
+    if (employee.organizationId === section.organizationId && employee.setor === previousName) {
+      employee.setor = nome
+      employee.updatedAt = section.updatedAt
+    }
+  }
+  await saveLocalData(data)
+  return section
+}
+
+export async function deleteSection(id: string): Promise<void> {
+  const data = await loadLocalData()
+  const section = data.sections.find((item) => item.id === id)
+  if (!section) throw new Error('Secao nao encontrada.')
+  const inUse = data.employees.some(
+    (employee) => employee.organizationId === section.organizationId && employee.setor === section.nome,
+  )
+  if (inUse) throw new Error('Nao e possivel excluir uma secao em uso.')
+  data.sections = data.sections.filter((item) => item.id !== id)
+  await saveLocalData(data)
 }
 
 export async function createEmployee(input: CreateEmployeeInput): Promise<Employee> {
@@ -141,12 +248,14 @@ export async function createEmployee(input: CreateEmployeeInput): Promise<Employ
   if (!data.organizations.some((item) => item.id === input.organizationId)) {
     throw new Error('Empresa nao encontrada para este funcionario.')
   }
+  const setor = assertSectionForOrganization(data, input.organizationId, input.setor)
   const createdAt = nowIso()
   const employee: Employee = {
     id: createId(),
     organizationId: input.organizationId,
     nome: assertText(input.nome, 'Nome do funcionario'),
-    setor: assertText(input.setor, 'Setor'),
+    setor,
+    defaultSchedule: normalizeDefaultSchedule(input.defaultSchedule),
     createdAt,
     updatedAt: createdAt,
   }
@@ -160,7 +269,13 @@ export async function updateEmployee(input: UpdateEmployeeInput): Promise<Employ
   const employee = data.employees.find((item) => item.id === input.id)
   if (!employee) throw new Error('Funcionario nao encontrado.')
   employee.nome = assertText(input.nome, 'Nome do funcionario')
-  employee.setor = assertText(input.setor, 'Setor')
+  employee.setor = assertSectionForOrganization(data, employee.organizationId, input.setor)
+  const defaultSchedule = normalizeDefaultSchedule(input.defaultSchedule)
+  if (defaultSchedule) {
+    employee.defaultSchedule = defaultSchedule
+  } else {
+    delete employee.defaultSchedule
+  }
   employee.updatedAt = nowIso()
   await saveLocalData(data)
   return employee

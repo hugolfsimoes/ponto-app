@@ -32,6 +32,15 @@ const pontoAPI = {
   deleteOrganization: (id: string): Promise<unknown> =>
     ipcRenderer.invoke('delete-organization', id),
 
+  createSection: (input: unknown): Promise<unknown> =>
+    ipcRenderer.invoke('create-section', input),
+
+  updateSection: (input: unknown): Promise<unknown> =>
+    ipcRenderer.invoke('update-section', input),
+
+  deleteSection: (id: string): Promise<unknown> =>
+    ipcRenderer.invoke('delete-section', id),
+
   createEmployee: (input: unknown): Promise<unknown> =>
     ipcRenderer.invoke('create-employee', input),
 

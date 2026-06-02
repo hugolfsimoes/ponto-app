@@ -24,11 +24,13 @@ export async function importBackupFromFile(sourcePath: string): Promise<void> {
   const parsed = JSON.parse(raw) as {
     version?: number
     organizations?: Array<{ logoPath?: string }>
+    sections?: unknown[]
     employees?: unknown[]
   }
   if (parsed.version !== 1 || !Array.isArray(parsed.organizations) || !Array.isArray(parsed.employees)) {
     throw new Error('Backup invalido: formato de dados nao reconhecido.')
   }
+  if (!Array.isArray(parsed.sections)) parsed.sections = []
 
   const tempDir = `${getDataDir()}-import`
   await fs.rm(tempDir, { recursive: true, force: true })

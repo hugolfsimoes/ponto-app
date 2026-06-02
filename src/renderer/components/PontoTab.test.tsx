@@ -1,6 +1,10 @@
 import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
-import { PontoTab, shouldShowNoEmployeesHint } from './PontoTab'
+import {
+  PontoTab,
+  resolveEmployeeDefaultSchedule,
+  shouldShowNoEmployeesHint,
+} from './PontoTab'
 import type { Employee, Organization } from '../types/electron'
 
 const organization: Organization = {
@@ -54,5 +58,31 @@ describe('PontoTab', () => {
     expect(html).toContain('Aplicar horário padrão')
     expect(html).toContain('Gerar PDF')
     expect(html).toContain('Usar planilha Excel')
+  })
+
+  it('uses an employee default schedule when available', () => {
+    expect(
+      resolveEmployeeDefaultSchedule({
+        ...employee,
+        defaultSchedule: {
+          entrada: '07:30',
+          inicioIntervalo: '11:30',
+          fimIntervalo: '12:30',
+          saida: '16:30',
+        },
+      }),
+    ).toEqual({
+      entrada: '07:30',
+      inicioIntervalo: '11:30',
+      fimIntervalo: '12:30',
+      saida: '16:30',
+    })
+
+    expect(resolveEmployeeDefaultSchedule(employee)).toEqual({
+      entrada: '08:00',
+      inicioIntervalo: '12:00',
+      fimIntervalo: '13:00',
+      saida: '17:00',
+    })
   })
 })

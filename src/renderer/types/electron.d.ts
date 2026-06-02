@@ -39,6 +39,22 @@ export interface Employee {
   organizationId: string
   nome: string
   setor: string
+  defaultSchedule?: EmployeeDefaultSchedule
+  createdAt: string
+  updatedAt: string
+}
+
+export interface EmployeeDefaultSchedule {
+  entrada: string
+  inicioIntervalo: string
+  fimIntervalo: string
+  saida: string
+}
+
+export interface Section {
+  id: string
+  organizationId: string
+  nome: string
   createdAt: string
   updatedAt: string
 }
@@ -46,6 +62,7 @@ export interface Employee {
 export interface LocalData {
   version: 1
   organizations: Organization[]
+  sections: Section[]
   employees: Employee[]
 }
 
@@ -103,15 +120,26 @@ export interface PontoAPI {
   deleteOrganization: (
     id: string,
   ) => Promise<{ success: boolean; error?: string }>
+  createSection: (input: {
+    organizationId: string
+    nome: string
+  }) => Promise<Section>
+  updateSection: (input: {
+    id: string
+    nome: string
+  }) => Promise<Section>
+  deleteSection: (id: string) => Promise<{ success: boolean; error?: string }>
   createEmployee: (input: {
     organizationId: string
     nome: string
     setor: string
+    defaultSchedule?: Partial<EmployeeDefaultSchedule>
   }) => Promise<Employee>
   updateEmployee: (input: {
     id: string
     nome: string
     setor: string
+    defaultSchedule?: Partial<EmployeeDefaultSchedule>
   }) => Promise<Employee>
   deleteEmployee: (id: string) => Promise<{ success: boolean; error?: string }>
   exportBackup: () => Promise<{

@@ -11,6 +11,22 @@ export interface Employee {
   organizationId: string
   nome: string
   setor: string
+  defaultSchedule?: EmployeeDefaultSchedule
+  createdAt: string
+  updatedAt: string
+}
+
+export interface EmployeeDefaultSchedule {
+  entrada: string
+  inicioIntervalo: string
+  fimIntervalo: string
+  saida: string
+}
+
+export interface Section {
+  id: string
+  organizationId: string
+  nome: string
   createdAt: string
   updatedAt: string
 }
@@ -18,6 +34,7 @@ export interface Employee {
 export interface LocalData {
   version: 1
   organizations: Organization[]
+  sections: Section[]
   employees: Employee[]
 }
 
@@ -36,12 +53,24 @@ export interface CreateEmployeeInput {
   organizationId: string
   nome: string
   setor: string
+  defaultSchedule?: Partial<EmployeeDefaultSchedule>
 }
 
 export interface UpdateEmployeeInput {
   id: string
   nome: string
   setor: string
+  defaultSchedule?: Partial<EmployeeDefaultSchedule>
+}
+
+export interface CreateSectionInput {
+  organizationId: string
+  nome: string
+}
+
+export interface UpdateSectionInput {
+  id: string
+  nome: string
 }
 
 export interface OperationResult {

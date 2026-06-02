@@ -48,6 +48,7 @@ const PAGE_MARGIN = 42.52; // 15 mm em pontos
 const FS = 7;             // font-size padrão da tabela
 const FS_INFO = 8;        // font-size do cabeçalho do documento
 const FS_TITLE = 12;      // font-size do título
+const LOGO_WIDTH = 60;    // largura da logo no cabeçalho do PDF
 
 const MESES: Record<number, string> = {
   1: 'JANEIRO', 2: 'FEVEREIRO', 3: 'MARÇO', 4: 'ABRIL',
@@ -169,7 +170,7 @@ function buildTitleSection(header: PontoHeader, logoBuffer?: Buffer): Content[] 
       columns: [
         {
           image: logoDataUri,
-          width: 30,
+          width: LOGO_WIDTH,
           margin: [ 0, 0, 10, 0 ] as [ number, number, number, number ],
         },
         {

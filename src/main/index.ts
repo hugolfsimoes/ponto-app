@@ -1,12 +1,13 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, screen } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { registerHandlers } from './ipc/handlers'
 
 function createWindow(): void {
+  const workAreaSize = screen.getPrimaryDisplay().workAreaSize
   const mainWindow = new BrowserWindow({
-    width: 560,
-    height: 700,
+    width: workAreaSize.width,
+    height: workAreaSize.height,
     minWidth: 480,
     minHeight: 600,
     show: false,

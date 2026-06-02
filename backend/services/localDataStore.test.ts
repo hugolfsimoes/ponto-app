@@ -16,7 +16,9 @@ vi.mock('electron', () => ({
 import {
   createEmployee,
   createOrganization,
+  createSection,
   deleteOrganization,
+  deleteSection,
   getDataFilePath,
   loadLocalData,
 } from './localDataStore'
@@ -41,6 +43,7 @@ describe('localDataStore', () => {
     await expect(loadLocalData()).resolves.toEqual({
       version: 1,
       organizations: [],
+      sections: [],
       employees: [],
     })
 
@@ -78,6 +81,10 @@ describe('localDataStore', () => {
       nome: 'Empresa Azul',
       logoSourcePath: await createLogo(),
     })
+    await createSection({
+      organizationId: organization.id,
+      nome: 'Portaria',
+    })
     await createEmployee({
       organizationId: organization.id,
       nome: 'Ana',
@@ -88,6 +95,7 @@ describe('localDataStore', () => {
 
     const data = await loadLocalData()
     expect(data.organizations).toHaveLength(0)
+    expect(data.sections).toHaveLength(0)
     expect(data.employees).toHaveLength(0)
     await expect(fs.access(organization.logoPath)).rejects.toThrow()
   })
@@ -100,5 +108,116 @@ describe('localDataStore', () => {
         setor: 'Portaria',
       }),
     ).rejects.toThrow('Empresa nao encontrada para este funcionario.')
+  })
+
+  it('creates sections per organization and requires employees to use a registered section', async () => {
+    const organization = await createOrganization({
+      nome: 'Empresa Azul',
+      logoSourcePath: await createLogo(),
+    })
+    const otherOrganization = await createOrganization({
+      nome: 'Empresa Verde',
+      logoSourcePath: await createLogo('verde.png'),
+    })
+
+    const section = await createSection({
+      organizationId: organization.id,
+      nome: 'Portaria',
+    })
+    await createSection({
+      organizationId: otherOrganization.id,
+      nome: 'Administrativo',
+    })
+
+    await expect(
+      createEmployee({
+        organizationId: organization.id,
+        nome: 'Ana',
+        setor: 'Administrativo',
+      }),
+    ).rejects.toThrow('Secao nao encontrada para esta empresa.')
+
+    const employee = await createEmployee({
+      organizationId: organization.id,
+      nome: 'Ana',
+      setor: section.nome,
+    })
+
+    expect(employee.setor).toBe('Portaria')
+  })
+
+  it('stores optional default schedules on employees', async () => {
+    const organization = await createOrganization({
+      nome: 'Empresa Azul',
+      logoSourcePath: await createLogo(),
+    })
+    await createSection({
+      organizationId: organization.id,
+      nome: 'Portaria',
+    })
+
+    const employee = await createEmployee({
+      organizationId: organization.id,
+      nome: 'Ana',
+      setor: 'Portaria',
+      defaultSchedule: {
+        entrada: '07:30',
+        inicioIntervalo: '11:30',
+        fimIntervalo: '12:30',
+        saida: '16:30',
+      },
+    })
+
+    expect(employee.defaultSchedule).toEqual({
+      entrada: '07:30',
+      inicioIntervalo: '11:30',
+      fimIntervalo: '12:30',
+      saida: '16:30',
+    })
+  })
+
+  it('rejects incomplete employee default schedules', async () => {
+    const organization = await createOrganization({
+      nome: 'Empresa Azul',
+      logoSourcePath: await createLogo(),
+    })
+    await createSection({
+      organizationId: organization.id,
+      nome: 'Portaria',
+    })
+
+    await expect(
+      createEmployee({
+        organizationId: organization.id,
+        nome: 'Ana',
+        setor: 'Portaria',
+        defaultSchedule: {
+          entrada: '07:30',
+          inicioIntervalo: '',
+          fimIntervalo: '12:30',
+          saida: '16:30',
+        },
+      }),
+    ).rejects.toThrow('Preencha todos os horarios padrao ou deixe todos em branco.')
+  })
+
+  it('deletes a section only when no employee uses it', async () => {
+    const organization = await createOrganization({
+      nome: 'Empresa Azul',
+      logoSourcePath: await createLogo(),
+    })
+    const section = await createSection({
+      organizationId: organization.id,
+      nome: 'Portaria',
+    })
+    await createEmployee({
+      organizationId: organization.id,
+      nome: 'Ana',
+      setor: section.nome,
+    })
+
+    await expect(deleteSection(section.id)).rejects.toThrow(
+      'Nao e possivel excluir uma secao em uso.',
+    )
   })
 })

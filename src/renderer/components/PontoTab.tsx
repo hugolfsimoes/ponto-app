@@ -15,6 +15,7 @@ import {
   toggleFolga,
   updateRowTime,
   type PontoEditorRow,
+  type DefaultSchedule,
 } from './pontoEditor'
 
 const ANO_ATUAL = new Date().getFullYear()
@@ -34,6 +35,13 @@ const MESES = [
   { valor: 12, nome: 'Dezembro' },
 ]
 
+const FALLBACK_DEFAULT_SCHEDULE: DefaultSchedule = {
+  entrada: '08:00',
+  inicioIntervalo: '12:00',
+  fimIntervalo: '13:00',
+  saida: '17:00',
+}
+
 type Operacao = 'planilha' | 'excel' | 'pdf' | 'validacao'
 
 type Status =
@@ -52,6 +60,12 @@ export function shouldShowNoEmployeesHint(
   filteredEmployees: Employee[],
 ): boolean {
   return selectedOrganizationId !== '' && filteredEmployees.length === 0
+}
+
+export function resolveEmployeeDefaultSchedule(
+  employee?: Employee | null,
+): DefaultSchedule {
+  return employee?.defaultSchedule ?? FALLBACK_DEFAULT_SCHEDULE
 }
 
 export function PontoTab({
@@ -404,12 +418,10 @@ export function PontoTab({
           type='button'
           onClick={() =>
             setRows((current) =>
-              applyDefaultSchedule(current, {
-                entrada: '08:00',
-                inicioIntervalo: '12:00',
-                fimIntervalo: '13:00',
-                saida: '17:00',
-              }),
+              applyDefaultSchedule(
+                current,
+                resolveEmployeeDefaultSchedule(selectedEmployee),
+              ),
             )
           }
           disabled={!selectedEmployee || isLoading}

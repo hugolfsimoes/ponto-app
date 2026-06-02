@@ -1,5 +1,5 @@
 import { JSX, useMemo, useState } from 'react'
-import type { Employee, LocalData, Organization } from '../types/electron'
+import type { Employee, LocalData, Organization, Section } from '../types/electron'
 
 interface CadastrosTabProps {
   data: LocalData
@@ -9,6 +9,25 @@ interface CadastrosTabProps {
 export function getBackendErrorMessage(result: { error?: string }): string | null {
   if ('error' in result && result.error) return result.error
   return null
+}
+
+export function isSectionInUse(
+  section: Pick<Section, 'organizationId' | 'nome'>,
+  employees: Employee[],
+): boolean {
+  return employees.some(
+    (employee) =>
+      employee.organizationId === section.organizationId &&
+      employee.setor === section.nome,
+  )
+}
+
+export function getSectionDeletionWarning(
+  section: Pick<Section, 'organizationId' | 'nome'>,
+  employees: Employee[],
+): string | null {
+  if (!isSectionInUse(section, employees)) return null
+  return 'Não é possível excluir seção que tenha funcionário cadastrado.'
 }
 
 export function CadastrosTab({
@@ -23,8 +42,15 @@ export function CadastrosTab({
   const [selectedOrganizationId, setSelectedOrganizationId] = useState(
     data.organizations[0]?.id ?? '',
   )
+  const [sectionName, setSectionName] = useState('')
+  const [editingSectionId, setEditingSectionId] = useState<string | null>(null)
   const [employeeName, setEmployeeName] = useState('')
   const [employeeSetor, setEmployeeSetor] = useState('')
+  const [defaultEntrada, setDefaultEntrada] = useState('')
+  const [defaultInicioIntervalo, setDefaultInicioIntervalo] = useState('')
+  const [defaultFimIntervalo, setDefaultFimIntervalo] = useState('')
+  const [defaultSaida, setDefaultSaida] = useState('')
+  const [sectionMessage, setSectionMessage] = useState('')
   const [editingEmployeeId, setEditingEmployeeId] = useState<string | null>(
     null,
   )
@@ -41,10 +67,20 @@ export function CadastrosTab({
       ),
     [data.employees, selectedOrganizationId],
   )
+  const filteredSections = useMemo(
+    () =>
+      data.sections.filter(
+        (section) => section.organizationId === selectedOrganizationId,
+      ),
+    [data.sections, selectedOrganizationId],
+  )
   const isEditingOrganization = editingOrganizationId !== null
+  const isEditingSection = editingSectionId !== null
   const canSaveOrganization =
     organizationName.trim() !== '' &&
     (isEditingOrganization || organizationLogoPath.trim() !== '')
+  const canSaveSection =
+    selectedOrganizationId !== '' && sectionName.trim() !== ''
   const canSaveEmployee =
     selectedOrganizationId !== '' &&
     employeeName.trim() !== '' &&
@@ -112,18 +148,82 @@ export function CadastrosTab({
       }
       if (selectedOrganizationId === id) setSelectedOrganizationId('')
       await onReload()
+      clearSectionForm()
+      clearEmployeeForm()
       setMessage('Empresa excluída.')
+    })
+  }
+
+  async function saveSection(): Promise<void> {
+    if (!canSaveSection) return
+    setSectionMessage('')
+    await runAction(async () => {
+      if (editingSectionId) {
+        const previousSection = data.sections.find(
+          (section) => section.id === editingSectionId,
+        )
+        const result = await window.pontoAPI.updateSection({
+          id: editingSectionId,
+          nome: sectionName,
+        })
+        if (surfaceBackendError(result)) return
+        await onReload()
+        clearSectionForm()
+        if (previousSection && employeeSetor === previousSection.nome) {
+          setEmployeeSetor(result.nome)
+        }
+        setMessage('Seção atualizada.')
+      } else {
+        const result = await window.pontoAPI.createSection({
+          organizationId: selectedOrganizationId,
+          nome: sectionName,
+        })
+        if (surfaceBackendError(result)) return
+        await onReload()
+        clearSectionForm()
+        setEmployeeSetor(result.nome)
+        setMessage('Seção cadastrada.')
+      }
+    })
+  }
+
+  async function removeSection(section: Section): Promise<void> {
+    const warning = getSectionDeletionWarning(section, data.employees)
+    if (warning) {
+      setSectionMessage(warning)
+      window.alert(warning)
+      return
+    }
+    setSectionMessage('')
+    if (!window.confirm('Excluir esta seção?')) return
+    await runAction(async () => {
+      const result = await window.pontoAPI.deleteSection(section.id)
+      if (surfaceBackendError(result)) return
+      if (!result.success) {
+        setMessage('Não foi possível excluir a seção.')
+        return
+      }
+      if (employeeSetor === section.nome) setEmployeeSetor('')
+      await onReload()
+      setMessage('Seção excluída.')
     })
   }
 
   async function saveEmployee(): Promise<void> {
     if (!canSaveEmployee) return
+    const defaultSchedule = {
+      entrada: defaultEntrada,
+      inicioIntervalo: defaultInicioIntervalo,
+      fimIntervalo: defaultFimIntervalo,
+      saida: defaultSaida,
+    }
     await runAction(async () => {
       if (editingEmployeeId) {
         const result = await window.pontoAPI.updateEmployee({
           id: editingEmployeeId,
           nome: employeeName,
           setor: employeeSetor,
+          defaultSchedule,
         })
         if (surfaceBackendError(result)) return
         setMessage('Funcionário atualizado.')
@@ -132,6 +232,7 @@ export function CadastrosTab({
           organizationId: selectedOrganizationId,
           nome: employeeName,
           setor: employeeSetor,
+          defaultSchedule,
         })
         if (surfaceBackendError(result)) return
         setMessage('Funcionário cadastrado.')
@@ -172,6 +273,7 @@ export function CadastrosTab({
       if (!result.success) throw new Error(result.error ?? 'Não foi possível importar o backup.')
       await onReload()
       clearOrganizationForm()
+      clearSectionForm()
       clearEmployeeForm()
       setSelectedOrganizationId('')
       setMessage('Backup importado com sucesso.')
@@ -185,10 +287,21 @@ export function CadastrosTab({
     setSelectedOrganizationId(organization.id)
   }
 
+  function editSection(section: Section): void {
+    setEditingSectionId(section.id)
+    setSectionName(section.nome)
+    setSelectedOrganizationId(section.organizationId)
+    setSectionMessage('')
+  }
+
   function editEmployee(employee: Employee): void {
     setEditingEmployeeId(employee.id)
     setEmployeeName(employee.nome)
     setEmployeeSetor(employee.setor)
+    setDefaultEntrada(employee.defaultSchedule?.entrada ?? '')
+    setDefaultInicioIntervalo(employee.defaultSchedule?.inicioIntervalo ?? '')
+    setDefaultFimIntervalo(employee.defaultSchedule?.fimIntervalo ?? '')
+    setDefaultSaida(employee.defaultSchedule?.saida ?? '')
     setSelectedOrganizationId(employee.organizationId)
   }
 
@@ -198,15 +311,29 @@ export function CadastrosTab({
     setEditingOrganizationId(null)
   }
 
+  function clearSectionForm(): void {
+    setSectionName('')
+    setSectionMessage('')
+    setEditingSectionId(null)
+  }
+
   function clearEmployeeForm(): void {
     setEmployeeName('')
     setEmployeeSetor('')
+    setDefaultEntrada('')
+    setDefaultInicioIntervalo('')
+    setDefaultFimIntervalo('')
+    setDefaultSaida('')
     setEditingEmployeeId(null)
   }
 
   return (
     <div style={s.stack}>
-      <section style={s.section}>
+      <div className='cadastros-layout'>
+      <section
+        className='cadastros-panel cadastros-empresas-panel'
+        style={s.panelSection}
+      >
         <h2 style={s.sectionTitle}>Empresas</h2>
         <div style={s.formGrid}>
           <input
@@ -258,7 +385,11 @@ export function CadastrosTab({
             <div key={organization.id} style={s.listItem}>
               <button
                 type='button'
-                onClick={() => setSelectedOrganizationId(organization.id)}
+                onClick={() => {
+                  setSelectedOrganizationId(organization.id)
+                  clearSectionForm()
+                  clearEmployeeForm()
+                }}
                 style={{
                   ...s.listButton,
                   ...(organization.id === selectedOrganizationId
@@ -287,23 +418,75 @@ export function CadastrosTab({
         </div>
       </section>
 
-      <section style={s.section}>
-        <h2 style={s.sectionTitle}>Funcionários</h2>
-        <select
-          value={selectedOrganizationId}
-          onChange={(event) => {
-            setSelectedOrganizationId(event.target.value)
-            clearEmployeeForm()
-          }}
-          style={s.input}
-        >
-          <option value=''>Selecione uma empresa</option>
-          {data.organizations.map((organization) => (
-            <option key={organization.id} value={organization.id}>
-              {organization.nome}
-            </option>
-          ))}
-        </select>
+      <section
+        className='cadastros-panel cadastros-funcionarios-panel'
+        style={s.panelSection}
+      >
+        <section style={s.compactSection}>
+          <h2 style={s.sectionTitle}>Seções</h2>
+          <div style={s.formGrid}>
+            <input
+              value={sectionName}
+              onChange={(event) => setSectionName(event.target.value)}
+              placeholder='Nome da seção'
+              disabled={isSaving || !selectedOrganization}
+              style={s.input}
+            />
+          </div>
+          <div style={s.actions}>
+            <button
+              type='button'
+              onClick={saveSection}
+              disabled={isSaving || !canSaveSection}
+              style={{
+                ...s.botao,
+                ...s.botaoAzul,
+                ...(!canSaveSection || isSaving ? s.botaoDesabilitado : {}),
+              }}
+            >
+              {isEditingSection ? 'Salvar seção' : 'Cadastrar seção'}
+            </button>
+            {isEditingSection && (
+              <button
+                type='button'
+                onClick={clearSectionForm}
+                disabled={isSaving}
+                style={{ ...s.botao, ...s.botaoNeutro }}
+              >
+                Cancelar
+              </button>
+            )}
+          </div>
+
+          <div aria-live='polite'>
+            {sectionMessage && <div style={s.inlineWarning}>{sectionMessage}</div>}
+          </div>
+
+          <div style={s.list}>
+            {filteredSections.map((section) => (
+              <div key={section.id} style={s.sectionListItem}>
+                <strong style={s.sectionName}>{section.nome}</strong>
+                <button
+                  type='button'
+                  onClick={() => editSection(section)}
+                  style={{ ...s.smallButton, ...s.botaoSecundario }}
+                >
+                  Editar
+                </button>
+                <button
+                  type='button'
+                  onClick={() => removeSection(section)}
+                  style={{ ...s.smallButton, ...s.botaoPerigo }}
+                >
+                  Excluir
+                </button>
+              </div>
+            ))}
+          </div>
+        </section>
+
+        <section style={s.compactSection}>
+          <h2 style={s.sectionTitle}>Funcionários</h2>
         <div style={s.formGrid}>
           <input
             value={employeeName}
@@ -312,13 +495,59 @@ export function CadastrosTab({
             disabled={isSaving || !selectedOrganization}
             style={s.input}
           />
-          <input
+          <select
             value={employeeSetor}
             onChange={(event) => setEmployeeSetor(event.target.value)}
-            placeholder='Setor'
-            disabled={isSaving || !selectedOrganization}
+            disabled={isSaving || !selectedOrganization || filteredSections.length === 0}
             style={s.input}
-          />
+          >
+            <option value=''>Selecione uma seção</option>
+            {filteredSections.map((section) => (
+              <option key={section.id} value={section.nome}>
+                {section.nome}
+              </option>
+            ))}
+          </select>
+          <label style={s.fieldLabel}>
+            Entrada padrão
+            <input
+              value={defaultEntrada}
+              onChange={(event) => setDefaultEntrada(event.target.value)}
+              placeholder='HH:mm'
+              disabled={isSaving || !selectedOrganization}
+              style={s.input}
+            />
+          </label>
+          <label style={s.fieldLabel}>
+            Início intervalo padrão
+            <input
+              value={defaultInicioIntervalo}
+              onChange={(event) => setDefaultInicioIntervalo(event.target.value)}
+              placeholder='HH:mm'
+              disabled={isSaving || !selectedOrganization}
+              style={s.input}
+            />
+          </label>
+          <label style={s.fieldLabel}>
+            Fim intervalo padrão
+            <input
+              value={defaultFimIntervalo}
+              onChange={(event) => setDefaultFimIntervalo(event.target.value)}
+              placeholder='HH:mm'
+              disabled={isSaving || !selectedOrganization}
+              style={s.input}
+            />
+          </label>
+          <label style={s.fieldLabel}>
+            Saída padrão
+            <input
+              value={defaultSaida}
+              onChange={(event) => setDefaultSaida(event.target.value)}
+              placeholder='HH:mm'
+              disabled={isSaving || !selectedOrganization}
+              style={s.input}
+            />
+          </label>
         </div>
         <div style={s.actions}>
           <button
@@ -369,31 +598,35 @@ export function CadastrosTab({
             </div>
           ))}
         </div>
+        </section>
       </section>
+      </div>
 
-      <section style={s.section}>
-        <h2 style={s.sectionTitle}>Backup</h2>
-        <div style={s.actions}>
-          <button
-            type='button'
-            onClick={exportBackup}
-            disabled={isSaving}
-            style={{ ...s.botao, ...s.botaoAzul }}
-          >
-            Exportar backup
-          </button>
-          <button
-            type='button'
-            onClick={importBackup}
-            disabled={isSaving}
-            style={{ ...s.botao, ...s.botaoLaranja }}
-          >
-            Importar backup
-          </button>
-        </div>
-      </section>
+      <div className='cadastros-footer'>
+        <section style={s.section}>
+          <h2 style={s.sectionTitle}>Backup</h2>
+          <div style={s.actions}>
+            <button
+              type='button'
+              onClick={exportBackup}
+              disabled={isSaving}
+              style={{ ...s.botao, ...s.botaoAzul }}
+            >
+              Exportar backup
+            </button>
+            <button
+              type='button'
+              onClick={importBackup}
+              disabled={isSaving}
+              style={{ ...s.botao, ...s.botaoLaranja }}
+            >
+              Importar backup
+            </button>
+          </div>
+        </section>
 
-      {message && <div style={s.message}>{message}</div>}
+        {message && <div style={s.message}>{message}</div>}
+      </div>
     </div>
   )
 }
@@ -407,6 +640,14 @@ const s: Record<string, React.CSSProperties> = {
   section: {
     borderTop: '1px solid #d9e6f5',
     paddingTop: '1rem',
+  },
+  compactSection: {
+    borderTop: '1px solid #d9e6f5',
+    paddingTop: '1rem',
+    marginTop: '1rem',
+  },
+  panelSection: {
+    minWidth: 0,
   },
   sectionTitle: {
     color: '#082f63',
@@ -428,6 +669,14 @@ const s: Record<string, React.CSSProperties> = {
     color: '#082f63',
     outline: 'none',
     minHeight: 40,
+  },
+  fieldLabel: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '0.35rem',
+    color: '#5f6f84',
+    fontSize: '0.78rem',
+    fontWeight: 700,
   },
   actions: {
     display: 'flex',
@@ -474,6 +723,17 @@ const s: Record<string, React.CSSProperties> = {
     gap: '0.45rem',
     alignItems: 'center',
   },
+  sectionListItem: {
+    display: 'grid',
+    gridTemplateColumns: '1fr auto auto',
+    gap: '0.45rem',
+    alignItems: 'center',
+  },
+  sectionName: {
+    minWidth: 0,
+    color: '#082f63',
+    fontSize: '0.9rem',
+  },
   listButton: {
     minWidth: 0,
     border: '1px solid #d9e6f5',
@@ -509,6 +769,16 @@ const s: Record<string, React.CSSProperties> = {
     border: '1px solid #bbf7d0',
     borderRadius: '7px',
     color: '#15803d',
+    fontSize: '0.85rem',
+    wordBreak: 'break-word',
+  },
+  inlineWarning: {
+    marginTop: '0.75rem',
+    padding: '0.65rem 0.8rem',
+    background: '#fff7ed',
+    border: '1px solid #fed7aa',
+    borderRadius: '7px',
+    color: '#9a3412',
     fontSize: '0.85rem',
     wordBreak: 'break-word',
   },

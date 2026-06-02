@@ -10,6 +10,7 @@ export function TemplateForm(): JSX.Element {
   const [localData, setLocalData] = useState<LocalData>({
     version: 1,
     organizations: [],
+    sections: [],
     employees: [],
   })
   const [loadError, setLoadError] = useState('')

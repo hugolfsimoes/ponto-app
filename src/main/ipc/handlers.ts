@@ -12,11 +12,14 @@ import { generatePdf } from '../../../backend/services/generatePdf'
 import {
   createEmployee,
   createOrganization,
+  createSection,
   deleteEmployee,
   deleteOrganization,
+  deleteSection,
   loadLocalData,
   updateEmployee,
   updateOrganization,
+  updateSection,
 } from '../../../backend/services/localDataStore'
 import { exportBackupToFile, importBackupFromFile } from '../../../backend/services/backupStore'
 import type {
@@ -205,7 +208,7 @@ export function registerHandlers(): void {
       return await loadLocalData()
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
-      return { version: 1, organizations: [], employees: [], error: msg }
+      return { version: 1, organizations: [], sections: [], employees: [], error: msg }
     }
   })
 
@@ -242,6 +245,31 @@ export function registerHandlers(): void {
   ipcMain.handle('delete-organization', async (_event, id: string) => {
     try {
       await deleteOrganization(id)
+      return { success: true }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : String(err) }
+    }
+  })
+
+  ipcMain.handle('create-section', async (_event, input) => {
+    try {
+      return await createSection(input)
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : String(err) }
+    }
+  })
+
+  ipcMain.handle('update-section', async (_event, input) => {
+    try {
+      return await updateSection(input)
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : String(err) }
+    }
+  })
+
+  ipcMain.handle('delete-section', async (_event, id: string) => {
+    try {
+      await deleteSection(id)
       return { success: true }
     } catch (err) {
       return { success: false, error: err instanceof Error ? err.message : String(err) }

@@ -8,6 +8,16 @@ import {
 } from '../../../backend/services/generateTemplate'
 import { processExcel } from '../../../backend/services/processExcel'
 import { generatePdf } from '../../../backend/services/generatePdf'
+import {
+  createEmployee,
+  createOrganization,
+  deleteEmployee,
+  deleteOrganization,
+  loadLocalData,
+  updateEmployee,
+  updateOrganization,
+} from '../../../backend/services/localDataStore'
+import { exportBackupToFile, importBackupFromFile } from '../../../backend/services/backupStore'
 import type { PontoHeader, PontoData } from '../../../backend/types/ponto'
 
 /** Tenta carregar a logo da empresa. Retorna undefined silenciosamente se não encontrada. */
@@ -30,13 +40,24 @@ async function loadLogo(): Promise<Buffer | undefined> {
   return undefined
 }
 
+async function loadLogoFromPath(logoPath?: string): Promise<Buffer | undefined> {
+  if (!logoPath) return loadLogo()
+  try {
+    return await fs.readFile(logoPath)
+  } catch {
+    return loadLogo()
+  }
+}
+
 /**
  * Registra todos os handlers IPC do aplicativo.
  * Cada handler delega para um serviço do backend.
  */
 export function registerHandlers(): void {
   // ── Fase 3: Geração do template Excel ──────────────────────────────────
-  ipcMain.handle('generate-template', async (event, data: PontoHeader) => {
+  ipcMain.handle('generate-template', async (event, input: PontoHeader | { header: PontoHeader; logoPath?: string }) => {
+    const data = 'header' in input ? input.header : input
+    const logoPath = 'header' in input ? input.logoPath : undefined
     const erros = validateHeader(data)
     if (erros.length > 0) {
       return { success: false, error: erros.join('; ') }
@@ -44,7 +65,7 @@ export function registerHandlers(): void {
 
     let buffer: Buffer
     try {
-      const logoBuffer = await loadLogo()
+      const logoBuffer = await loadLogoFromPath(logoPath)
       buffer = await generateTemplate(data, logoBuffer)
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
@@ -104,14 +125,16 @@ export function registerHandlers(): void {
   })
 
   // ── Fase 6: Geração do PDF ─────────────────────────────────────────────
-  ipcMain.handle('generate-pdf', async (event, data: PontoData) => {
+  ipcMain.handle('generate-pdf', async (event, input: PontoData | { data: PontoData; logoPath?: string }) => {
+    const data = 'data' in input ? input.data : input
+    const logoPath = 'data' in input ? input.logoPath : undefined
     if (!data || !data.header || !data.records) {
       return { success: false, error: 'Dados inválidos para geração do PDF' }
     }
 
     let buffer: Buffer
     try {
-      const logoBuffer = await loadLogo()
+      const logoBuffer = await loadLogoFromPath(logoPath)
       buffer = await generatePdf(data, logoBuffer)
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
@@ -144,5 +167,119 @@ export function registerHandlers(): void {
     }
 
     return { success: true, filePath }
+  })
+
+  // ── Cadastros locais ───────────────────────────────────────────────────
+  ipcMain.handle('load-local-data', async () => {
+    try {
+      return await loadLocalData()
+    } catch (err) {
+      const msg = err instanceof Error ? err.message : String(err)
+      return { version: 1, organizations: [], employees: [], error: msg }
+    }
+  })
+
+  ipcMain.handle('select-logo-file', async (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    const { filePaths, canceled } = await dialog.showOpenDialog(
+      win ?? BrowserWindow.getFocusedWindow()!,
+      {
+        title: 'Selecionar Logo da Empresa',
+        filters: [{ name: 'Imagem', extensions: ['png', 'jpg', 'jpeg'] }],
+        properties: ['openFile'],
+      }
+    )
+    if (canceled || filePaths.length === 0) return { canceled: true }
+    return { filePath: filePaths[0] }
+  })
+
+  ipcMain.handle('create-organization', async (_event, input) => {
+    try {
+      return await createOrganization(input)
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : String(err) }
+    }
+  })
+
+  ipcMain.handle('update-organization', async (_event, input) => {
+    try {
+      return await updateOrganization(input)
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : String(err) }
+    }
+  })
+
+  ipcMain.handle('delete-organization', async (_event, id: string) => {
+    try {
+      await deleteOrganization(id)
+      return { success: true }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : String(err) }
+    }
+  })
+
+  ipcMain.handle('create-employee', async (_event, input) => {
+    try {
+      return await createEmployee(input)
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : String(err) }
+    }
+  })
+
+  ipcMain.handle('update-employee', async (_event, input) => {
+    try {
+      return await updateEmployee(input)
+    } catch (err) {
+      return { error: err instanceof Error ? err.message : String(err) }
+    }
+  })
+
+  ipcMain.handle('delete-employee', async (_event, id: string) => {
+    try {
+      await deleteEmployee(id)
+      return { success: true }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : String(err) }
+    }
+  })
+
+  // ── Backup local ───────────────────────────────────────────────────────
+  ipcMain.handle('export-backup', async (event) => {
+    const date = new Date().toISOString().slice(0, 10)
+    const win = BrowserWindow.fromWebContents(event.sender)
+    const { filePath, canceled } = await dialog.showSaveDialog(
+      win ?? BrowserWindow.getFocusedWindow()!,
+      {
+        title: 'Exportar Backup do PontoApp',
+        defaultPath: `pontoapp-backup-${date}.zip`,
+        filters: [{ name: 'Backup ZIP', extensions: ['zip'] }],
+      }
+    )
+    if (canceled || !filePath) return { success: false, canceled: true }
+    try {
+      await exportBackupToFile(filePath)
+      return { success: true, filePath }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : String(err) }
+    }
+  })
+
+  ipcMain.handle('import-backup', async (event) => {
+    const win = BrowserWindow.fromWebContents(event.sender)
+    const { filePaths, canceled } = await dialog.showOpenDialog(
+      win ?? BrowserWindow.getFocusedWindow()!,
+      {
+        title: 'Importar Backup do PontoApp',
+        filters: [{ name: 'Backup ZIP', extensions: ['zip'] }],
+        properties: ['openFile'],
+      }
+    )
+    if (canceled || filePaths.length === 0) return { success: false, canceled: true }
+    try {
+      await importBackupFromFile(filePaths[0])
+      return { success: true }
+    } catch (err) {
+      return { success: false, error: err instanceof Error ? err.message : String(err) }
+    }
   })
 }

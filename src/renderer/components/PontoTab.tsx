@@ -38,6 +38,13 @@ interface PontoTabProps {
   employees: Employee[]
 }
 
+export function shouldShowNoEmployeesHint(
+  selectedOrganizationId: string,
+  filteredEmployees: Employee[],
+): boolean {
+  return selectedOrganizationId !== '' && filteredEmployees.length === 0
+}
+
 export function PontoTab({
   organizations,
   employees,
@@ -265,7 +272,7 @@ export function PontoTab({
               </option>
             ))}
           </select>
-          {selectedOrganizationId && filteredEmployees.length === 0 && (
+          {shouldShowNoEmployeesHint(selectedOrganizationId, filteredEmployees) && (
             <p style={s.emptyHint}>
               Esta empresa ainda não tem funcionários cadastrados.
             </p>

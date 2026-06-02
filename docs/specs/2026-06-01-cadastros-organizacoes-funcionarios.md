@@ -215,6 +215,16 @@ Testes unitarios recomendados para:
 - Criar/editar/excluir funcionario valida campos obrigatorios.
 - Exportar backup inclui JSON e logos.
 - Importar backup substitui dados locais somente quando valido.
+- Renderer usa a marca Ponto App no shell e nao renderiza mais a identidade fixa PROTMAX.
+- Tabs aplicam classes de estado ativo compativeis com a identidade visual.
+- Aba Ponto mostra estado vazio quando nao ha organizacoes cadastradas.
+- Aba Ponto mostra aviso quando a organizacao selecionada nao tem funcionarios.
+- Aba Cadastros exibe mensagens `error` retornadas pelo backend em operacoes CRUD.
+
+Configuracao de testes:
+
+- `pnpm test` deve executar tanto testes backend (`backend/**/*.test.ts`) quanto testes renderer (`src/**/*.test.ts` e `src/**/*.test.tsx`).
+- Testes de renderer podem usar renderizacao estatica React para validar textos, classes e regras puras de estado sem depender do Electron.
 
 Verificacao manual:
 

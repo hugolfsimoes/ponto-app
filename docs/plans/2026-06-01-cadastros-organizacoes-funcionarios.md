@@ -908,6 +908,8 @@ git commit -m "feat: add ponto and cadastro tabs"
 - Modify: `src/renderer/components/Tabs.tsx`
 - Modify: `src/renderer/components/PontoTab.tsx`
 - Modify: `src/renderer/components/CadastrosTab.tsx`
+- Create/Modify tests: `src/renderer/components/TemplateForm.test.tsx`, `src/renderer/components/PontoTab.test.tsx`
+- Modify test config: `vitest.config.ts`
 
 - [x] **Step 1: Copy the existing app image into build resources**
 
@@ -1090,7 +1092,16 @@ Add styles:
 }
 ```
 
-- [x] **Step 6: Build**
+- [x] **Step 6: Add renderer tests for branding and tabs**
+
+Add Vitest coverage for:
+
+- `TemplateForm` renders the Ponto App logo/header copy and no longer renders the fixed PROTMAX shell branding.
+- `Tabs` renders the tablist and applies the `tab active` class to the selected tab.
+
+Update `vitest.config.ts` so `pnpm test` includes renderer tests under `src/**/*.test.ts` and `src/**/*.test.tsx`.
+
+- [x] **Step 7: Build**
 
 Run:
 
@@ -1100,7 +1111,7 @@ pnpm build
 
 Expected: build passes, renderer uses the new Ponto App image, and no asset import errors occur.
 
-- [x] **Step 7: Commit**
+- [x] **Step 8: Commit**
 
 ```bash
 git add resources/pontoapp.png src/assets/img/appImage.png electron-builder.yml src/renderer/components/TemplateForm.tsx src/renderer/components/Tabs.tsx src/renderer/components/PontoTab.tsx src/renderer/components/CadastrosTab.tsx src/renderer/styles/global.css
@@ -1113,6 +1124,8 @@ git commit -m "feat: apply ponto app branding"
 - Modify: `src/renderer/components/PontoTab.tsx`
 - Modify: `src/renderer/components/CadastrosTab.tsx`
 - Modify: `src/renderer/styles/global.css` if shared styling is preferred over inline styles.
+- Create/Modify tests: `src/renderer/components/PontoTab.test.tsx`, `src/renderer/components/CadastrosTab.test.ts`
+- Modify test config: `vitest.config.ts`
 
 - [x] **Step 1: Add empty state in Ponto tab**
 
@@ -1157,7 +1170,25 @@ Disable save employee unless:
 const canSaveEmployee = selectedOrganizationId !== '' && employeeName.trim() !== '' && employeeSetor.trim() !== ''
 ```
 
-- [x] **Step 4: Build**
+- [x] **Step 4: Add renderer tests for empty states and backend errors**
+
+Add Vitest coverage for:
+
+- `PontoTab` renders the empty state when there are no organizations.
+- The no-employees rule only triggers after an organization is selected and that organization has no employees.
+- Cadastro CRUD result handling surfaces backend `error` messages instead of hiding them behind generic messages.
+
+- [x] **Step 5: Test**
+
+Run:
+
+```bash
+pnpm test
+```
+
+Expected: backend and renderer tests pass.
+
+- [x] **Step 6: Build**
 
 Run:
 
@@ -1167,10 +1198,10 @@ pnpm build
 
 Expected: build passes.
 
-- [x] **Step 5: Commit**
+- [x] **Step 7: Commit**
 
 ```bash
-git add src/renderer/components/PontoTab.tsx src/renderer/components/CadastrosTab.tsx src/renderer/styles/global.css
+git add src/renderer/components/PontoTab.tsx src/renderer/components/CadastrosTab.tsx src/renderer/components/PontoTab.test.tsx src/renderer/components/CadastrosTab.test.ts src/renderer/components/TemplateForm.test.tsx src/renderer/styles/global.css vitest.config.ts
 git commit -m "feat: polish cadastro workflow states"
 ```
 

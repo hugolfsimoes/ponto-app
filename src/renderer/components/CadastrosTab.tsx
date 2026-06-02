@@ -6,6 +6,11 @@ interface CadastrosTabProps {
   onReload: () => Promise<void>
 }
 
+export function getBackendErrorMessage(result: { error?: string }): string | null {
+  if ('error' in result && result.error) return result.error
+  return null
+}
+
 export function CadastrosTab({
   data,
   onReload,
@@ -63,8 +68,9 @@ export function CadastrosTab({
   }
 
   function surfaceBackendError(result: { error?: string }): boolean {
-    if ('error' in result && result.error) {
-      setMessage(result.error)
+    const errorMessage = getBackendErrorMessage(result)
+    if (errorMessage) {
+      setMessage(errorMessage)
       return true
     }
     return false

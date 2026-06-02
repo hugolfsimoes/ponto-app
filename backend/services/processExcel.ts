@@ -87,7 +87,12 @@ function scanRowForRegex(
 
 /** Índices 0-based das linhas típicas do cabeçalho + margem. */
 const HEADER_SCAN_ROWS_0 = [2, 3, 1, 4, 5, 0]
-const SECAO_SCAN_ROWS_0 = [3, 2, 4, 5, 1, 0] // prioriza linha 4 (SEÇÃO no template novo)
+const SECAO_SCAN_ROWS_0 = [3, 2, 4, 5, 1, 0] // prioriza linha 4 (SETOR / FUNÇÃO no template novo)
+
+interface SetorFuncaoResult {
+  secao: string
+  funcao?: string
+}
 
 function extractNome(ws: XLSX.WorkSheet): string {
   const re = /FUNCION[ÁA]RIO:\s*(.+)/i
@@ -100,17 +105,24 @@ function extractNome(ws: XLSX.WorkSheet): string {
   return ''
 }
 
-function extractSecao(ws: XLSX.WorkSheet): string {
-  const re = /SE[ÇC][ÃA]O:\s*(.+)/i
+function parseSetorFuncao(value: string): SetorFuncaoResult {
+  const [secaoRaw, ...funcaoParts] = value.split('/')
+  const secao = secaoRaw.trim()
+  const funcao = funcaoParts.join('/').trim()
+  return funcao ? { secao, funcao } : { secao }
+}
+
+function extractSetorFuncao(ws: XLSX.WorkSheet): SetorFuncaoResult {
+  const re = /(?:SE[ÇC][ÃA]O|SETOR\s*\/\s*FUN[ÇC][ÃA]O):\s*(.+)/i
   const a4 = getCellString(ws, 'A4').match(re)
-  if (a4) return a4[1].trim()
+  if (a4) return parseSetorFuncao(a4[1])
   const d3 = getCellString(ws, 'D3').match(re)
-  if (d3) return d3[1].trim() // planilhas antigas (SEÇÃO à direita na linha 3)
+  if (d3) return parseSetorFuncao(d3[1]) // planilhas antigas (SEÇÃO à direita na linha 3)
   for (const r of SECAO_SCAN_ROWS_0) {
     const v = scanRowForRegex(ws, r, re)
-    if (v) return v
+    if (v) return parseSetorFuncao(v)
   }
-  return ''
+  return { secao: '' }
 }
 
 function extractMesAno(ws: XLSX.WorkSheet): { mes: number; ano: number } | null {
@@ -172,8 +184,8 @@ function extractHeader(ws: XLSX.WorkSheet): HeaderResult {
     errors.push({ dia: 0, campo: 'Nome', mensagem: "Célula 'Funcionário' não encontrada no cabeçalho" })
   }
 
-  const secao = extractSecao(ws)
-  if (!secao) {
+  const setorFuncao = extractSetorFuncao(ws)
+  if (!setorFuncao.secao) {
     errors.push({ dia: 0, campo: 'Seção', mensagem: "Célula 'Seção' não encontrada no cabeçalho" })
   }
 
@@ -192,7 +204,8 @@ function extractHeader(ws: XLSX.WorkSheet): HeaderResult {
     header: {
       empresa: extractEmpresa(ws),
       nome,
-      secao,
+      secao: setorFuncao.secao,
+      funcao: setorFuncao.funcao,
       mes: mesAno!.mes,
       ano: mesAno!.ano,
     },

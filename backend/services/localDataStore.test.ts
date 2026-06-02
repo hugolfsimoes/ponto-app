@@ -176,6 +176,26 @@ describe('localDataStore', () => {
     })
   })
 
+  it('stores optional employee role/function text', async () => {
+    const organization = await createOrganization({
+      nome: 'Empresa Azul',
+      logoSourcePath: await createLogo(),
+    })
+    await createSection({
+      organizationId: organization.id,
+      nome: 'Portaria',
+    })
+
+    const employee = await createEmployee({
+      organizationId: organization.id,
+      nome: 'Ana',
+      setor: 'Portaria',
+      cargoFuncao: '  Auxiliar Administrativo  ',
+    })
+
+    expect(employee.cargoFuncao).toBe('Auxiliar Administrativo')
+  })
+
   it('rejects incomplete employee default schedules', async () => {
     const organization = await createOrganization({
       nome: 'Empresa Azul',

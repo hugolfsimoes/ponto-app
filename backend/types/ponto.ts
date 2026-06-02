@@ -4,6 +4,7 @@ export interface PontoHeader {
   empresa: string;
   nome: string;
   secao: string;
+  funcao?: string;
   mes: number;
   ano: number;
 }

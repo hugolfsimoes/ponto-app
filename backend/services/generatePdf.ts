@@ -63,6 +63,11 @@ function fmtTime(entry: TimeEntry | null): string {
   return `${String(entry.hora).padStart(2, '0')}:${String(entry.minuto).padStart(2, '0')}`;
 }
 
+function formatSetorFuncao(header: PontoHeader): string {
+  const funcao = header.funcao?.trim();
+  return funcao ? `${header.secao} / ${funcao}` : header.secao;
+}
+
 /** Cria um ContentText padrão para célula da tabela. */
 function tc(
   text: string,
@@ -215,7 +220,7 @@ export async function generatePdf(
             width: '*',
           },
           {
-            text: `SEÇÃO: ${header.secao}`,
+            text: `SETOR / FUNÇÃO: ${formatSetorFuncao(header)}`,
             fontSize: FS_INFO,
             bold: true,
             width: 'auto',

@@ -11,6 +11,7 @@ export interface Employee {
   organizationId: string
   nome: string
   setor: string
+  cargoFuncao?: string
   defaultSchedule?: EmployeeDefaultSchedule
   createdAt: string
   updatedAt: string
@@ -53,6 +54,7 @@ export interface CreateEmployeeInput {
   organizationId: string
   nome: string
   setor: string
+  cargoFuncao?: string
   defaultSchedule?: Partial<EmployeeDefaultSchedule>
 }
 
@@ -60,6 +62,7 @@ export interface UpdateEmployeeInput {
   id: string
   nome: string
   setor: string
+  cargoFuncao?: string
   defaultSchedule?: Partial<EmployeeDefaultSchedule>
 }
 

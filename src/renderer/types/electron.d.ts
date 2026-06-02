@@ -8,6 +8,7 @@ export interface PontoHeader {
   empresa: string
   nome: string
   secao: string
+  funcao?: string
   mes: number
   ano: number
 }
@@ -39,6 +40,7 @@ export interface Employee {
   organizationId: string
   nome: string
   setor: string
+  cargoFuncao?: string
   defaultSchedule?: EmployeeDefaultSchedule
   createdAt: string
   updatedAt: string
@@ -133,12 +135,14 @@ export interface PontoAPI {
     organizationId: string
     nome: string
     setor: string
+    cargoFuncao?: string
     defaultSchedule?: Partial<EmployeeDefaultSchedule>
   }) => Promise<Employee>
   updateEmployee: (input: {
     id: string
     nome: string
     setor: string
+    cargoFuncao?: string
     defaultSchedule?: Partial<EmployeeDefaultSchedule>
   }) => Promise<Employee>
   deleteEmployee: (id: string) => Promise<{ success: boolean; error?: string }>

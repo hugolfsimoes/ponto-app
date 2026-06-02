@@ -1,4 +1,6 @@
 import { renderToStaticMarkup } from 'react-dom/server'
+import { readFileSync } from 'fs'
+import { join } from 'path'
 import { describe, expect, it } from 'vitest'
 import {
   PontoTab,
@@ -84,5 +86,14 @@ describe('PontoTab', () => {
       fimIntervalo: '13:00',
       saida: '17:00',
     })
+  })
+
+  it('uses the employee role/function in the manual PDF header source', () => {
+    const source = readFileSync(
+      join(process.cwd(), 'src/renderer/components/PontoTab.tsx'),
+      'utf-8',
+    )
+
+    expect(source).toContain('funcao: selectedEmployee.cargoFuncao')
   })
 })

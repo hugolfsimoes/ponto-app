@@ -15,6 +15,10 @@ const COL_WIDTHS = [6, 16, 12, 18, 16, 12]
 const NUM_COLS = 6
 const LAST_COL_LETTER = 'F'
 
+function formatSetorFuncao(header: PontoHeader): string {
+  const funcao = header.funcao?.trim()
+  return funcao ? `${header.secao} / ${funcao}` : header.secao
+}
 
 /** Borda fina em todos os lados */
 function thinBorder(): Partial<ExcelJS.Borders> {
@@ -137,8 +141,8 @@ export async function generateTemplate(
     height: 18
   })
 
-  // ── Linha 4: Seção (linha inteira) ───────────────────────────────────────
-  sheet.addRow([`SEÇÃO: ${header.secao}`, null, null, null, null, null])
+  // ── Linha 4: Setor / Função (linha inteira) ──────────────────────────────
+  sheet.addRow([`SETOR / FUNÇÃO: ${formatSetorFuncao(header)}`, null, null, null, null, null])
   sheet.mergeCells(`A4:${LAST_COL_LETTER}4`)
   applyRowStyle(sheet.getRow(4), {
     fontSize: 10,

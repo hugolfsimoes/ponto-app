@@ -46,6 +46,7 @@ export function CadastrosTab({
   const [editingSectionId, setEditingSectionId] = useState<string | null>(null)
   const [employeeName, setEmployeeName] = useState('')
   const [employeeSetor, setEmployeeSetor] = useState('')
+  const [employeeCargoFuncao, setEmployeeCargoFuncao] = useState('')
   const [defaultEntrada, setDefaultEntrada] = useState('')
   const [defaultInicioIntervalo, setDefaultInicioIntervalo] = useState('')
   const [defaultFimIntervalo, setDefaultFimIntervalo] = useState('')
@@ -223,6 +224,7 @@ export function CadastrosTab({
           id: editingEmployeeId,
           nome: employeeName,
           setor: employeeSetor,
+          cargoFuncao: employeeCargoFuncao,
           defaultSchedule,
         })
         if (surfaceBackendError(result)) return
@@ -232,6 +234,7 @@ export function CadastrosTab({
           organizationId: selectedOrganizationId,
           nome: employeeName,
           setor: employeeSetor,
+          cargoFuncao: employeeCargoFuncao,
           defaultSchedule,
         })
         if (surfaceBackendError(result)) return
@@ -298,6 +301,7 @@ export function CadastrosTab({
     setEditingEmployeeId(employee.id)
     setEmployeeName(employee.nome)
     setEmployeeSetor(employee.setor)
+    setEmployeeCargoFuncao(employee.cargoFuncao ?? '')
     setDefaultEntrada(employee.defaultSchedule?.entrada ?? '')
     setDefaultInicioIntervalo(employee.defaultSchedule?.inicioIntervalo ?? '')
     setDefaultFimIntervalo(employee.defaultSchedule?.fimIntervalo ?? '')
@@ -320,6 +324,7 @@ export function CadastrosTab({
   function clearEmployeeForm(): void {
     setEmployeeName('')
     setEmployeeSetor('')
+    setEmployeeCargoFuncao('')
     setDefaultEntrada('')
     setDefaultInicioIntervalo('')
     setDefaultFimIntervalo('')
@@ -509,6 +514,16 @@ export function CadastrosTab({
             ))}
           </select>
           <label style={s.fieldLabel}>
+            Cargo/Função
+            <input
+              value={employeeCargoFuncao}
+              onChange={(event) => setEmployeeCargoFuncao(event.target.value)}
+              placeholder='Ex: Auxiliar administrativo'
+              disabled={isSaving || !selectedOrganization}
+              style={s.input}
+            />
+          </label>
+          <label style={s.fieldLabel}>
             Entrada padrão
             <input
               value={defaultEntrada}
@@ -579,7 +594,11 @@ export function CadastrosTab({
             <div key={employee.id} style={s.listItem}>
               <div style={s.employeeText}>
                 <strong>{employee.nome}</strong>
-                <span>{employee.setor}</span>
+                <span>
+                  {employee.cargoFuncao
+                    ? `${employee.setor} / ${employee.cargoFuncao}`
+                    : employee.setor}
+                </span>
               </div>
               <button
                 type='button'

@@ -138,6 +138,7 @@ describe('CadastrosTab layout', () => {
     expect(html).not.toContain('Selecione uma empresa')
     expect(html).toContain('Selecione uma seção')
     expect(html).toContain('Entrada padrão')
+    expect(html).toContain('Cargo/Função')
     expect(html).toContain('Início intervalo padrão')
     expect(html).toContain('Fim intervalo padrão')
     expect(html).toContain('Saída padrão')

@@ -138,6 +138,7 @@ export function PontoTab({
       empresa: selectedOrganization.nome,
       nome: selectedEmployee.nome,
       secao: selectedEmployee.setor,
+      funcao: selectedEmployee.cargoFuncao,
       mes,
       ano: ANO_ATUAL,
     }
@@ -206,6 +207,7 @@ export function PontoTab({
       empresa: selectedOrganization.nome,
       nome: selectedEmployee.nome,
       secao: selectedEmployee.setor,
+      funcao: selectedEmployee.cargoFuncao,
       mes,
       ano: ANO_ATUAL,
     }

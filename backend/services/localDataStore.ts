@@ -50,6 +50,11 @@ function assertText(value: string, label: string): string {
   return trimmed
 }
 
+function normalizeOptionalText(value?: string): string | undefined {
+  const trimmed = value?.trim() ?? ''
+  return trimmed || undefined
+}
+
 const SCHEDULE_FIELDS: Array<keyof EmployeeDefaultSchedule> = [
   'entrada',
   'inicioIntervalo',
@@ -255,6 +260,7 @@ export async function createEmployee(input: CreateEmployeeInput): Promise<Employ
     organizationId: input.organizationId,
     nome: assertText(input.nome, 'Nome do funcionario'),
     setor,
+    cargoFuncao: normalizeOptionalText(input.cargoFuncao),
     defaultSchedule: normalizeDefaultSchedule(input.defaultSchedule),
     createdAt,
     updatedAt: createdAt,
@@ -270,6 +276,12 @@ export async function updateEmployee(input: UpdateEmployeeInput): Promise<Employ
   if (!employee) throw new Error('Funcionario nao encontrado.')
   employee.nome = assertText(input.nome, 'Nome do funcionario')
   employee.setor = assertSectionForOrganization(data, employee.organizationId, input.setor)
+  const cargoFuncao = normalizeOptionalText(input.cargoFuncao)
+  if (cargoFuncao) {
+    employee.cargoFuncao = cargoFuncao
+  } else {
+    delete employee.cargoFuncao
+  }
   const defaultSchedule = normalizeDefaultSchedule(input.defaultSchedule)
   if (defaultSchedule) {
     employee.defaultSchedule = defaultSchedule

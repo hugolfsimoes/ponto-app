@@ -18,20 +18,6 @@ describe('generatePdf layout', () => {
     expect(source).toContain('formatSetorFuncao')
   })
 
-  it('keeps generated spreadsheets compatible with sector and function headers', () => {
-    const templateSource = readFileSync(
-      join(process.cwd(), 'backend/services/generateTemplate.ts'),
-      'utf-8',
-    )
-    const excelSource = readFileSync(
-      join(process.cwd(), 'backend/services/processExcel.ts'),
-      'utf-8',
-    )
-
-    expect(templateSource).toContain('SETOR / FUNÇÃO')
-    expect(excelSource).toContain('parseSetorFuncao')
-  })
-
   it('applies a custom horarioFontSize to the time columns only', () => {
     const source = readFileSync(join(process.cwd(), 'backend/services/generatePdf.ts'), 'utf-8')
 

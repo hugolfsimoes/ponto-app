@@ -7,12 +7,6 @@ import { electronAPI } from '@electron-toolkit/preload'
  * Nenhuma lógica de negócio aqui — apenas ponte para o IPC.
  */
 const pontoAPI = {
-  generateTemplate: (data: unknown): Promise<unknown> =>
-    ipcRenderer.invoke('generate-template', data),
-
-  processExcel: (filePath: string): Promise<unknown> =>
-    ipcRenderer.invoke('process-excel', filePath),
-
   buildPontoData: (input: unknown): Promise<unknown> =>
     ipcRenderer.invoke('build-ponto-data', input),
 

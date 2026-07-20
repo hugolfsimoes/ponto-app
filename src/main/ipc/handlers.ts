@@ -1,12 +1,6 @@
 import { ipcMain, dialog, BrowserWindow, app } from 'electron'
 import { promises as fs } from 'fs'
 import { join } from 'path'
-import {
-  generateTemplate,
-  validateHeader,
-  suggestFileName
-} from '../../../backend/services/generateTemplate'
-import { processExcel } from '../../../backend/services/processExcel'
 import { buildPontoDataFromManualInput } from '../../../backend/services/buildPontoDataFromManualInput'
 import { generatePdf } from '../../../backend/services/generatePdf'
 import {
@@ -62,76 +56,6 @@ async function loadLogoFromPath(logoPath?: string): Promise<Buffer | undefined> 
  * Cada handler delega para um serviço do backend.
  */
 export function registerHandlers(): void {
-  // ── Fase 3: Geração do template Excel ──────────────────────────────────
-  ipcMain.handle('generate-template', async (event, input: PontoHeader | { header: PontoHeader; logoPath?: string }) => {
-    const data = 'header' in input ? input.header : input
-    const logoPath = 'header' in input ? input.logoPath : undefined
-    const erros = validateHeader(data)
-    if (erros.length > 0) {
-      return { success: false, error: erros.join('; ') }
-    }
-
-    let buffer: Buffer
-    try {
-      const logoBuffer = await loadLogoFromPath(logoPath)
-      buffer = await generateTemplate(data, logoBuffer)
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      return { success: false, error: `Erro ao gerar o template: ${msg}` }
-    }
-
-    const win = BrowserWindow.fromWebContents(event.sender)
-    const { filePath, canceled } = await dialog.showSaveDialog(
-      win ?? BrowserWindow.getFocusedWindow()!,
-      {
-        title: 'Salvar Template de Ponto',
-        defaultPath: suggestFileName(data),
-        filters: [{ name: 'Planilha Excel', extensions: ['xlsx'] }]
-      }
-    )
-
-    if (canceled || !filePath) {
-      return { success: false, canceled: true }
-    }
-
-    try {
-      await fs.writeFile(filePath, buffer)
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      return { success: false, error: `Erro ao salvar o arquivo: ${msg}` }
-    }
-
-    return { success: true, filePath }
-  })
-
-  // ── Fase 4-5: Processamento do Excel ───────────────────────────────────
-  ipcMain.handle('process-excel', async (event, filePath?: string) => {
-    if (!filePath) {
-      const win = BrowserWindow.fromWebContents(event.sender)
-      const { filePaths, canceled } = await dialog.showOpenDialog(
-        win ?? BrowserWindow.getFocusedWindow()!,
-        {
-          title: 'Selecionar Planilha de Ponto',
-          filters: [{ name: 'Planilha Excel', extensions: ['xlsx'] }],
-          properties: ['openFile'],
-        }
-      )
-
-      if (canceled || filePaths.length === 0) {
-        return { success: false, canceled: true }
-      }
-
-      filePath = filePaths[0]
-    }
-
-    try {
-      return await processExcel(filePath)
-    } catch (err) {
-      const msg = err instanceof Error ? err.message : String(err)
-      return { success: false, error: `Erro ao processar a planilha: ${msg}` }
-    }
-  })
-
   ipcMain.handle(
     'build-ponto-data',
     async (_event, input: { header: PontoHeader; records: unknown }) => {

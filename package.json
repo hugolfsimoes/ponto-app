@@ -22,9 +22,7 @@
   "dependencies": {
     "adm-zip": "^0.5.17",
     "dayjs": "^1.11.13",
-    "exceljs": "^4.4.0",
-    "pdfmake": "^0.2.18",
-    "xlsx": "^0.18.5"
+    "pdfmake": "^0.2.18"
   },
   "devDependencies": {
     "@electron-toolkit/preload": "^3.0.1",

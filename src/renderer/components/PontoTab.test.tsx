@@ -94,7 +94,7 @@ describe('PontoTab', () => {
     )
 
     expect(html).toContain('Tamanho da fonte dos horários')
-    expect(html).toContain('value="10"')
+    expect(html).toContain('<option value="10" selected="">10pt</option>')
   })
 
   it('uses the employee role/function in the manual PDF header source', () => {

@@ -46,7 +46,6 @@ const COL_WIDTHS: (number | string)[] = [ 20, 53, 46, 57, 57, 46, 50, 97, 84 ];
 
 const PAGE_MARGIN = 42.52; // 15 mm em pontos
 const FS = 7;             // font-size padrão da tabela
-const FS_INFO = 8;        // font-size do cabeçalho do documento
 const FS_TITLE = 12;      // font-size do título
 const LOGO_WIDTH = 60;    // largura da logo no cabeçalho do PDF
 
@@ -93,15 +92,15 @@ function buildTableBody(
 ): TableCell[][] {
   const horarioFontSize = options?.horarioFontSize ?? 10;
   const headerRow: TableCell[] = [
-    tc('DIA', { bold: true }),
-    tc('DIA DA\nSEMANA', { bold: true }),
-    tc('ENTRADA', { bold: true }),
-    tc('INÍCIO\nINTERVALO', { bold: true }),
-    tc('FIM\nINTERVALO', { bold: true }),
-    tc('SAÍDA', { bold: true }),
-    tc('TOTAL\nSEMANA', { bold: true }),
-    tc('ASSINATURA', { bold: true }),
-    tc('JUSTIFICATIVA', { bold: true }),
+    tc('DIA', { bold: true, fontSize: 10 }),
+    tc('DIA DA\nSEMANA', { bold: true, fontSize: 10 }),
+    tc('ENTRADA', { bold: true, fontSize: 10 }),
+    tc('INÍCIO\nINTERVALO', { bold: true, fontSize: 10 }),
+    tc('FIM\nINTERVALO', { bold: true, fontSize: 10 }),
+    tc('SAÍDA', { bold: true, fontSize: 10 }),
+    tc('TOTAL\nSEMANA', { bold: true, fontSize: 10 }),
+    tc('ASSINATURA', { bold: true, fontSize: 10 }),
+    tc('JUSTIFICATIVA', { bold: true, fontSize: 10 }),
   ];
 
   // Dia de fechamento de cada semana → total formatado
@@ -115,13 +114,13 @@ function buildTableBody(
     const folga = rec.folga;
 
     return [
-      tc(String(rec.dia)),
-      tc(rec.diaSemana),
+      tc(String(rec.dia), { fontSize: 10 }),
+      tc(rec.diaSemana, { fontSize: 10 }),
       tc(folga ? 'FOLGA' : fmtTime(rec.entrada), { bold: folga, fontSize: horarioFontSize }),
       tc(folga ? 'FOLGA' : fmtTime(rec.inicioIntervalo), { bold: folga, fontSize: horarioFontSize }),
       tc(folga ? 'FOLGA' : fmtTime(rec.fimIntervalo), { bold: folga, fontSize: horarioFontSize }),
       tc(folga ? 'FOLGA' : fmtTime(rec.saida), { bold: folga, fontSize: horarioFontSize }),
-      tc(totalSemana, { bold: !!totalSemana, fontSize: totalSemana ? 8 : FS }),
+      tc(totalSemana, { bold: !!totalSemana, fontSize: totalSemana ? 10 : FS }),
       tc(' ', { fontSize: 10 }), // Assinatura — espaço para preenchimento manual
       tc(''),                    // Justificativa — espaço para preenchimento manual
     ];
@@ -156,7 +155,7 @@ function buildTitleSection(header: PontoHeader, logoBuffer?: Buffer): Content[] 
   };
   const empresaLinha: Content = {
     text: header.empresa.toUpperCase(),
-    fontSize: 9,
+    fontSize: 10,
     bold: true,
     alignment: 'center',
     margin: [ 0, 0, 0, 0 ] as [ number, number, number, number ],
@@ -220,13 +219,13 @@ export async function generatePdf(
         columns: [
           {
             text: `FUNCIONÁRIO: ${header.nome}`,
-            fontSize: FS_INFO,
+            fontSize: 10,
             bold: true,
             width: '*',
           },
           {
             text: `SETOR / FUNÇÃO: ${formatSetorFuncao(header)}`,
-            fontSize: FS_INFO,
+            fontSize: 10,
             bold: true,
             width: 'auto',
           },
@@ -235,7 +234,7 @@ export async function generatePdf(
       },
       {
         text: `${mesNome} / ${header.ano}`,
-        fontSize: FS_INFO,
+        fontSize: 10,
         bold: true,
         margin: [ 0, 0, 0, 6 ] as [ number, number, number, number ],
       },
@@ -257,19 +256,19 @@ export async function generatePdf(
         columns: [
           {
             text: `TOTAL MENSAL: ${data.totalMensalFormatado}`,
-            fontSize: FS_INFO,
+            fontSize: 10,
             bold: true,
             width: 'auto',
           },
           {
             text: 'DATA: _____ / _____ / _________',
-            fontSize: FS_INFO,
+            fontSize: 10,
             alignment: 'center' as const,
             width: '*',
           },
           {
             text: 'ASSINATURA DO SUPERVISOR: ___________________________',
-            fontSize: FS_INFO,
+            fontSize: 10,
             alignment: 'right',
             width: 'auto',
           },

@@ -59,7 +59,7 @@ describe('excelValidator', () => {
     const errors = validate([
       record({
         tipoDia: 'FOLGA',
-        entrada: null,
+        entrada: { hora: 8, minuto: 0 },
         inicioIntervalo: null,
         fimIntervalo: null,
         saida: null,
@@ -70,7 +70,7 @@ describe('excelValidator', () => {
         entrada: null,
         inicioIntervalo: null,
         fimIntervalo: null,
-        saida: null,
+        saida: { hora: 17, minuto: 0 },
       }),
     ])
 

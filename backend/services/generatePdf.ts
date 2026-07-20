@@ -86,11 +86,7 @@ function tc(
 
 // ── Construção do corpo da tabela ─────────────────────────────────────────────
 
-function buildTableBody(
-  data: PontoData,
-  options?: { horarioFontSize?: number },
-): TableCell[][] {
-  const horarioFontSize = options?.horarioFontSize ?? 10;
+function buildTableBody(data: PontoData): TableCell[][] {
   const headerRow: TableCell[] = [
     tc('DIA', { bold: true, fontSize: 10 }),
     tc('DIA DA\nSEMANA', { bold: true, fontSize: 10 }),
@@ -116,10 +112,10 @@ function buildTableBody(
     return [
       tc(String(rec.dia), { fontSize: 10 }),
       tc(rec.diaSemana, { fontSize: 10 }),
-      tc(label ?? fmtTime(rec.entrada), { bold: !!label, fontSize: horarioFontSize }),
-      tc(label ?? fmtTime(rec.inicioIntervalo), { bold: !!label, fontSize: horarioFontSize }),
-      tc(label ?? fmtTime(rec.fimIntervalo), { bold: !!label, fontSize: horarioFontSize }),
-      tc(label ?? fmtTime(rec.saida), { bold: !!label, fontSize: horarioFontSize }),
+      tc(label ?? fmtTime(rec.entrada), { bold: !!label, fontSize: 10 }),
+      tc(label ?? fmtTime(rec.inicioIntervalo), { bold: !!label, fontSize: 10 }),
+      tc(label ?? fmtTime(rec.fimIntervalo), { bold: !!label, fontSize: 10 }),
+      tc(label ?? fmtTime(rec.saida), { bold: !!label, fontSize: 10 }),
       tc(totalSemana, { bold: !!totalSemana, fontSize: totalSemana ? 10 : FS }),
       tc(' ', { fontSize: 10 }), // Assinatura — espaço para preenchimento manual
       tc(''),                    // Justificativa — espaço para preenchimento manual
@@ -198,7 +194,6 @@ function buildTitleSection(header: PontoHeader, logoBuffer?: Buffer): Content[] 
 export async function generatePdf(
   data: PontoData,
   logoBuffer?: Buffer,
-  options?: { horarioFontSize?: number },
 ): Promise<Buffer> {
   const { header } = data;
   const mesNome = MESES[ header.mes ] ?? String(header.mes);
@@ -246,7 +241,7 @@ export async function generatePdf(
           // Impede que uma linha seja partida entre duas páginas (ex: meses com 31 dias)
           dontBreakRows: true,
           widths: COL_WIDTHS,
-          body: buildTableBody(data, options),
+          body: buildTableBody(data),
         },
         layout: tableLayout,
       },

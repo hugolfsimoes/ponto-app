@@ -113,10 +113,10 @@ function buildTableBody(data: PontoData): TableCell[][] {
     return [
       tc(String(rec.dia)),
       tc(rec.diaSemana),
-      tc(folga ? 'FOLGA' : fmtTime(rec.entrada), { bold: folga }),
-      tc(folga ? 'FOLGA' : fmtTime(rec.inicioIntervalo), { bold: folga }),
-      tc(folga ? 'FOLGA' : fmtTime(rec.fimIntervalo), { bold: folga }),
-      tc(folga ? 'FOLGA' : fmtTime(rec.saida), { bold: folga }),
+      tc(folga ? 'FOLGA' : fmtTime(rec.entrada), { bold: folga, fontSize: 10 }),
+      tc(folga ? 'FOLGA' : fmtTime(rec.inicioIntervalo), { bold: folga, fontSize: 10 }),
+      tc(folga ? 'FOLGA' : fmtTime(rec.fimIntervalo), { bold: folga, fontSize: 10 }),
+      tc(folga ? 'FOLGA' : fmtTime(rec.saida), { bold: folga, fontSize: 10 }),
       tc(totalSemana, { bold: !!totalSemana, fontSize: totalSemana ? 8 : FS }),
       tc(' ', { fontSize: 10 }), // Assinatura — espaço para preenchimento manual
       tc(''),                    // Justificativa — espaço para preenchimento manual

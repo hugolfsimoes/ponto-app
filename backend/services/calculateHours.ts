@@ -6,7 +6,7 @@ import { MINUTES_IN_DAY, normalizeSequentialMinutes } from '../utils/timeUtils'
  *
  * Fórmula: (saída − entrada) − (fimIntervalo − inicioIntervalo)
  *
- * Pré-condição: o record foi validado por excelValidator.validate() antes
+ * Pré-condição: o record foi validado por buildPontoDataFromManualInput antes
  * desta chamada — os horários estão em ordem lógica e nenhum campo obrigatório
  * está ausente quando tipoDia === 'NORMAL'.
  */

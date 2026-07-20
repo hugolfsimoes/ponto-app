@@ -1,4 +1,4 @@
-import type { ManualPontoRecordInput, TimeEntry } from '../types/electron'
+import type { ManualPontoRecordInput, TimeEntry, TipoDia } from '../types/electron'
 
 const DIAS_SEMANA = [
   'DOMINGO',
@@ -17,7 +17,7 @@ export interface PontoEditorRow {
   inicioIntervalo: string
   fimIntervalo: string
   saida: string
-  folga: boolean
+  tipoDia: TipoDia
 }
 
 export interface DefaultSchedule {
@@ -41,7 +41,7 @@ export function createMonthlyRows(mes: number, ano: number): PontoEditorRow[] {
       inicioIntervalo: '',
       fimIntervalo: '',
       saida: '',
-      folga: false,
+      tipoDia: 'NORMAL',
     }
   })
 }
@@ -56,17 +56,33 @@ export function parseTimeInput(value: string): TimeEntry | null {
 export function toggleFolga(
   rows: PontoEditorRow[],
   dia: number,
-  folga: boolean,
+  checked: boolean,
+): PontoEditorRow[] {
+  return setTipoDia(rows, dia, checked ? 'FOLGA' : 'NORMAL')
+}
+
+export function toggleFeriado(
+  rows: PontoEditorRow[],
+  dia: number,
+  checked: boolean,
+): PontoEditorRow[] {
+  return setTipoDia(rows, dia, checked ? 'FERIADO' : 'NORMAL')
+}
+
+function setTipoDia(
+  rows: PontoEditorRow[],
+  dia: number,
+  tipoDia: TipoDia,
 ): PontoEditorRow[] {
   return rows.map((row) =>
     row.dia === dia
       ? {
           ...row,
-          folga,
-          entrada: folga ? '' : row.entrada,
-          inicioIntervalo: folga ? '' : row.inicioIntervalo,
-          fimIntervalo: folga ? '' : row.fimIntervalo,
-          saida: folga ? '' : row.saida,
+          tipoDia,
+          entrada: tipoDia === 'NORMAL' ? row.entrada : '',
+          inicioIntervalo: tipoDia === 'NORMAL' ? row.inicioIntervalo : '',
+          fimIntervalo: tipoDia === 'NORMAL' ? row.fimIntervalo : '',
+          saida: tipoDia === 'NORMAL' ? row.saida : '',
         }
       : row,
   )
@@ -79,7 +95,7 @@ export function updateRowTime(
   value: string,
 ): PontoEditorRow[] {
   return rows.map((row) =>
-    row.dia === dia ? { ...row, [field]: value, folga: false } : row,
+    row.dia === dia ? { ...row, [field]: value, tipoDia: 'NORMAL' } : row,
   )
 }
 
@@ -87,7 +103,7 @@ export function applyDefaultSchedule(
   rows: PontoEditorRow[],
   schedule: DefaultSchedule,
 ): PontoEditorRow[] {
-  return rows.map((row) => (row.folga ? row : { ...row, ...schedule }))
+  return rows.map((row) => (row.tipoDia === 'NORMAL' ? { ...row, ...schedule } : row))
 }
 
 export function serializeRowsForManualInput(
@@ -95,10 +111,10 @@ export function serializeRowsForManualInput(
 ): ManualPontoRecordInput[] {
   return rows.map((row) => ({
     dia: row.dia,
-    entrada: row.folga ? null : parseTimeInput(row.entrada),
-    inicioIntervalo: row.folga ? null : parseTimeInput(row.inicioIntervalo),
-    fimIntervalo: row.folga ? null : parseTimeInput(row.fimIntervalo),
-    saida: row.folga ? null : parseTimeInput(row.saida),
-    folga: row.folga,
+    entrada: row.tipoDia === 'NORMAL' ? parseTimeInput(row.entrada) : null,
+    inicioIntervalo: row.tipoDia === 'NORMAL' ? parseTimeInput(row.inicioIntervalo) : null,
+    fimIntervalo: row.tipoDia === 'NORMAL' ? parseTimeInput(row.fimIntervalo) : null,
+    saida: row.tipoDia === 'NORMAL' ? parseTimeInput(row.saida) : null,
+    tipoDia: row.tipoDia,
   }))
 }

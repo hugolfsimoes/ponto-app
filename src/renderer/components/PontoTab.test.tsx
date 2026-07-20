@@ -62,6 +62,15 @@ describe('PontoTab', () => {
     expect(html).toContain('Usar planilha Excel')
   })
 
+  it('renders separate Folga and Feriado columns in the editor grid', () => {
+    const html = renderToStaticMarkup(
+      <PontoTab organizations={[organization]} employees={[employee]} />,
+    )
+
+    expect(html).toContain('<span>Folga</span>')
+    expect(html).toContain('<span>Feriado</span>')
+  })
+
   it('uses an employee default schedule when available', () => {
     expect(
       resolveEmployeeDefaultSchedule({

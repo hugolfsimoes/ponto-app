@@ -18,13 +18,15 @@ export interface TimeEntry {
   minuto: number
 }
 
+export type TipoDia = 'NORMAL' | 'FOLGA' | 'FERIADO'
+
 export interface ManualPontoRecordInput {
   dia: number
   entrada: TimeEntry | null
   inicioIntervalo: TimeEntry | null
   fimIntervalo: TimeEntry | null
   saida: TimeEntry | null
-  folga: boolean
+  tipoDia: TipoDia
 }
 
 export interface Organization {

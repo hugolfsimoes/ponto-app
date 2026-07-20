@@ -12,6 +12,7 @@ import {
   applyDefaultSchedule,
   createMonthlyRows,
   serializeRowsForManualInput,
+  toggleFeriado,
   toggleFolga,
   updateRowTime,
   type PontoEditorRow,
@@ -499,6 +500,7 @@ export function PontoTab({
           <span>Fim Intervalo</span>
           <span>Saída</span>
           <span>Folga</span>
+          <span>Feriado</span>
         </div>
         {rows.map((row) => (
           <div key={row.dia} style={s.editorRow}>
@@ -510,9 +512,9 @@ export function PontoTab({
                   key={field}
                   type='text'
                   inputMode='numeric'
-                  placeholder={row.folga ? 'FOLGA' : 'HH:mm'}
-                  value={row.folga ? 'FOLGA' : row[field]}
-                  disabled={row.folga || !selectedEmployee || isLoading}
+                  placeholder={row.tipoDia !== 'NORMAL' ? row.tipoDia : 'HH:mm'}
+                  value={row.tipoDia !== 'NORMAL' ? row.tipoDia : row[field]}
+                  disabled={row.tipoDia !== 'NORMAL' || !selectedEmployee || isLoading}
                   onChange={(event) =>
                     setRows((current) =>
                       updateRowTime(current, row.dia, field, event.target.value),
@@ -525,11 +527,23 @@ export function PontoTab({
             <label style={s.folgaCell}>
               <input
                 type='checkbox'
-                checked={row.folga}
+                checked={row.tipoDia === 'FOLGA'}
                 disabled={!selectedEmployee || isLoading}
                 onChange={(event) =>
                   setRows((current) =>
                     toggleFolga(current, row.dia, event.target.checked),
+                  )
+                }
+              />
+            </label>
+            <label style={s.folgaCell}>
+              <input
+                type='checkbox'
+                checked={row.tipoDia === 'FERIADO'}
+                disabled={!selectedEmployee || isLoading}
+                onChange={(event) =>
+                  setRows((current) =>
+                    toggleFeriado(current, row.dia, event.target.checked),
                   )
                 }
               />
@@ -762,10 +776,10 @@ const s: Record<string, React.CSSProperties> = {
   },
   editorHeaderRow: {
     display: 'grid',
-    gridTemplateColumns: '44px 92px repeat(4, minmax(92px, 1fr)) 60px',
+    gridTemplateColumns: '44px 92px repeat(4, minmax(92px, 1fr)) 60px 60px',
     gap: '0.35rem',
     alignItems: 'center',
-    minWidth: 620,
+    minWidth: 680,
     color: '#5f6f84',
     fontSize: '0.72rem',
     fontWeight: 700,
@@ -773,10 +787,10 @@ const s: Record<string, React.CSSProperties> = {
   },
   editorRow: {
     display: 'grid',
-    gridTemplateColumns: '44px 92px repeat(4, minmax(92px, 1fr)) 60px',
+    gridTemplateColumns: '44px 92px repeat(4, minmax(92px, 1fr)) 60px 60px',
     gap: '0.35rem',
     alignItems: 'center',
-    minWidth: 620,
+    minWidth: 680,
   },
   dayCell: {
     color: '#082f63',

@@ -4,7 +4,9 @@ import {
   createMonthlyRows,
   parseTimeInput,
   serializeRowsForManualInput,
+  toggleFeriado,
   toggleFolga,
+  updateRowTime,
 } from './pontoEditor'
 
 describe('pontoEditor helpers', () => {
@@ -15,7 +17,7 @@ describe('pontoEditor helpers', () => {
     expect(rows[0]).toMatchObject({
       dia: 1,
       diaSemana: 'DOMINGO',
-      folga: false,
+      tipoDia: 'NORMAL',
     })
     expect(rows[27]).toMatchObject({ dia: 28 })
   })
@@ -38,7 +40,7 @@ describe('pontoEditor helpers', () => {
 
     expect(result[0].entrada).toBe('08:00')
     expect(result[1].entrada).toBe('')
-    expect(result[1].folga).toBe(true)
+    expect(result[1].tipoDia).toBe('FOLGA')
   })
 
   it('serializes UI rows to manual backend input', () => {
@@ -55,7 +57,27 @@ describe('pontoEditor helpers', () => {
       inicioIntervalo: { hora: 12, minuto: 0 },
       fimIntervalo: { hora: 13, minuto: 0 },
       saida: { hora: 17, minuto: 0 },
-      folga: false,
+      tipoDia: 'NORMAL',
     })
+  })
+
+  it('marks a day as feriado and clears its times', () => {
+    const rows = toggleFeriado(createMonthlyRows(2, 2026), 5, true)
+    expect(rows[4]).toMatchObject({ dia: 5, tipoDia: 'FERIADO', entrada: '' })
+  })
+
+  it('toggling feriado overrides a previous folga on the same day, and vice versa', () => {
+    const folgaRows = toggleFolga(createMonthlyRows(2, 2026), 5, true)
+    const feriadoRows = toggleFeriado(folgaRows, 5, true)
+    expect(feriadoRows[4].tipoDia).toBe('FERIADO')
+
+    const backToFolga = toggleFolga(feriadoRows, 5, true)
+    expect(backToFolga[4].tipoDia).toBe('FOLGA')
+  })
+
+  it('updateRowTime resets the day back to normal', () => {
+    const rows = toggleFeriado(createMonthlyRows(2, 2026), 5, true)
+    const updated = updateRowTime(rows, 5, 'entrada', '08:00')
+    expect(updated[4].tipoDia).toBe('NORMAL')
   })
 })

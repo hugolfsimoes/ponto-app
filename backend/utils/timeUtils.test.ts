@@ -47,6 +47,12 @@ describe('parseExcelTime', () => {
       'Serial numérico fora do intervalo esperado',
     )
   })
+
+  it('throws a validation error for a serial of exactly 1 (next midnight, not a valid time)', () => {
+    expect(() => parseExcelTime(1, 3, 'entrada')).toThrow(
+      'Serial numérico fora do intervalo esperado',
+    )
+  })
 })
 
 describe('time helpers', () => {

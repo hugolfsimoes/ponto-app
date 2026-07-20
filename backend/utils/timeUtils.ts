@@ -35,7 +35,7 @@ export function parseExcelTime(
   }
 
   if (typeof value === 'number') {
-    if (value < 0 || value > 1) {
+    if (value < 0 || value >= 1) {
       throw createValidationError(dia, campo, `Serial numérico fora do intervalo esperado: ${value}`, value)
     }
     const totalMinutes = Math.round(value * 24 * 60)

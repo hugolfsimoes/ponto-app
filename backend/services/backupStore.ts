@@ -51,8 +51,26 @@ export async function importBackupFromFile(sourcePath: string): Promise<void> {
   }
 
   await fs.writeFile(join(tempDir, 'dados.json'), JSON.stringify(parsed, null, 2), 'utf-8')
-  await fs.rm(getDataDir(), { recursive: true, force: true })
-  await fs.mkdir(getDataDir(), { recursive: true })
-  await fs.cp(tempDir, getDataDir(), { recursive: true })
-  await fs.rm(tempDir, { recursive: true, force: true })
+
+  // Troca atomica: o diretorio atual e renomeado para um caminho de backup
+  // antes de mover os dados novos para o lugar. Se a segunda renomeacao
+  // falhar, os dados atuais sao restaurados a partir do backup em vez de
+  // ficarem apagados sem os novos terem sido copiados com sucesso.
+  const previousDir = `${getDataDir()}-prev-${Date.now()}`
+  let hadPrevious = false
+  try {
+    await fs.rename(getDataDir(), previousDir)
+    hadPrevious = true
+  } catch {
+    // Sem diretorio atual (primeira execucao) - nada para preservar.
+  }
+
+  try {
+    await fs.rename(tempDir, getDataDir())
+  } catch (err) {
+    if (hadPrevious) await fs.rename(previousDir, getDataDir())
+    throw err
+  }
+
+  if (hadPrevious) await fs.rm(previousDir, { recursive: true, force: true })
 }

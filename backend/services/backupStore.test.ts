@@ -86,6 +86,50 @@ describe('backupStore', () => {
     )
   })
 
+  it('preserves the existing data if moving the imported data into place fails', async () => {
+    await createOrganization({
+      nome: 'Empresa Original',
+      logoSourcePath: await createLogo(),
+    })
+
+    const backupPath = join(mockPaths.userDataDir, 'backup.zip')
+    writeZip(backupPath, {
+      'dados.json': JSON.stringify({
+        version: 1,
+        organizations: [
+          {
+            id: 'org-2',
+            nome: 'Empresa Restaurada',
+            logoPath: '/old/computer/org-2.png',
+            createdAt: '2026-01-01T00:00:00.000Z',
+            updatedAt: '2026-01-01T00:00:00.000Z',
+          },
+        ],
+        employees: [],
+      }),
+      'logos/org-2.png': 'image-bytes',
+    })
+
+    const originalRename = fs.rename.bind(fs)
+    let renameCalls = 0
+    const renameSpy = vi
+      .spyOn(fs, 'rename')
+      .mockImplementation(async (...args: Parameters<typeof fs.rename>) => {
+        renameCalls += 1
+        if (renameCalls === 2) throw new Error('disk full (simulated)')
+        return originalRename(...args)
+      })
+
+    await expect(importBackupFromFile(backupPath)).rejects.toThrow(
+      'disk full (simulated)',
+    )
+    renameSpy.mockRestore()
+
+    const data = await loadLocalData()
+    expect(data.organizations).toHaveLength(1)
+    expect(data.organizations[0].nome).toBe('Empresa Original')
+  })
+
   it('rejects backups without dados.json', async () => {
     const backupPath = join(mockPaths.userDataDir, 'missing-data.zip')
     writeZip(backupPath, {

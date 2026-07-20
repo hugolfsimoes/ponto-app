@@ -10,7 +10,7 @@ function record(overrides: Partial<PontoRecord> = {}): PontoRecord {
     inicioIntervalo: { hora: 12, minuto: 0 },
     fimIntervalo: { hora: 13, minuto: 0 },
     saida: { hora: 17, minuto: 0 },
-    folga: false,
+    tipoDia: 'NORMAL',
     ...overrides,
   }
 }
@@ -53,5 +53,27 @@ describe('excelValidator', () => {
     ])
 
     expect(errors[0]?.mensagem).toContain('excede 24 horas')
+  })
+
+  it('skips required-field validation for folga and feriado days', () => {
+    const errors = validate([
+      record({
+        tipoDia: 'FOLGA',
+        entrada: null,
+        inicioIntervalo: null,
+        fimIntervalo: null,
+        saida: null,
+      }),
+      record({
+        dia: 2,
+        tipoDia: 'FERIADO',
+        entrada: null,
+        inicioIntervalo: null,
+        fimIntervalo: null,
+        saida: null,
+      }),
+    ])
+
+    expect(errors).toEqual([])
   })
 })

@@ -14,6 +14,8 @@ export interface TimeEntry {
   minuto: number;
 }
 
+export type TipoDia = 'NORMAL' | 'FOLGA' | 'FERIADO';
+
 export interface PontoRecord {
   dia: number;
   diaSemana: DiaSemana;
@@ -21,7 +23,7 @@ export interface PontoRecord {
   inicioIntervalo: TimeEntry | null;
   fimIntervalo: TimeEntry | null;
   saida: TimeEntry | null;
-  folga: boolean;
+  tipoDia: TipoDia;
   minutesTrabalhados?: number;
 }
 
@@ -31,7 +33,7 @@ export interface ManualPontoRecordInput {
   inicioIntervalo: TimeEntry | null;
   fimIntervalo: TimeEntry | null;
   saida: TimeEntry | null;
-  folga: boolean;
+  tipoDia: TipoDia;
 }
 
 export interface WeekGroup {

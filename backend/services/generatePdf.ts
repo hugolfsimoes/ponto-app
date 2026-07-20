@@ -111,15 +111,15 @@ function buildTableBody(
 
   const dataRows: TableCell[][] = data.records.map((rec: PontoRecord) => {
     const totalSemana = weekTotals.get(rec.dia) ?? '';
-    const folga = rec.folga;
+    const label = rec.tipoDia === 'NORMAL' ? null : rec.tipoDia;
 
     return [
       tc(String(rec.dia), { fontSize: 10 }),
       tc(rec.diaSemana, { fontSize: 10 }),
-      tc(folga ? 'FOLGA' : fmtTime(rec.entrada), { bold: folga, fontSize: horarioFontSize }),
-      tc(folga ? 'FOLGA' : fmtTime(rec.inicioIntervalo), { bold: folga, fontSize: horarioFontSize }),
-      tc(folga ? 'FOLGA' : fmtTime(rec.fimIntervalo), { bold: folga, fontSize: horarioFontSize }),
-      tc(folga ? 'FOLGA' : fmtTime(rec.saida), { bold: folga, fontSize: horarioFontSize }),
+      tc(label ?? fmtTime(rec.entrada), { bold: !!label, fontSize: horarioFontSize }),
+      tc(label ?? fmtTime(rec.inicioIntervalo), { bold: !!label, fontSize: horarioFontSize }),
+      tc(label ?? fmtTime(rec.fimIntervalo), { bold: !!label, fontSize: horarioFontSize }),
+      tc(label ?? fmtTime(rec.saida), { bold: !!label, fontSize: horarioFontSize }),
       tc(totalSemana, { bold: !!totalSemana, fontSize: totalSemana ? 10 : FS }),
       tc(' ', { fontSize: 10 }), // Assinatura — espaço para preenchimento manual
       tc(''),                    // Justificativa — espaço para preenchimento manual

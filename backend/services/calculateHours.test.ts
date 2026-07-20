@@ -10,7 +10,7 @@ function record(overrides: Partial<PontoRecord> = {}): PontoRecord {
     inicioIntervalo: { hora: 12, minuto: 0 },
     fimIntervalo: { hora: 13, minuto: 0 },
     saida: { hora: 17, minuto: 0 },
-    folga: false,
+    tipoDia: 'NORMAL',
     ...overrides,
   }
 }
@@ -47,7 +47,11 @@ describe('calculateHours', () => {
   })
 
   it('returns zero for days off', () => {
-    expect(calculateHours(record({ folga: true }))).toBe(0)
+    expect(calculateHours(record({ tipoDia: 'FOLGA' }))).toBe(0)
+  })
+
+  it('returns zero for feriado', () => {
+    expect(calculateHours(record({ tipoDia: 'FERIADO' }))).toBe(0)
   })
 
   it('returns zero when a non-day-off record is incomplete', () => {

@@ -48,11 +48,11 @@ export function buildPontoDataFromManualInput(
       const record: PontoRecord = {
         dia: row.dia,
         diaSemana: getDayName(row.dia, header.mes, header.ano),
-        entrada: row.folga ? null : row.entrada,
-        inicioIntervalo: row.folga ? null : row.inicioIntervalo,
-        fimIntervalo: row.folga ? null : row.fimIntervalo,
-        saida: row.folga ? null : row.saida,
-        folga: row.folga,
+        entrada: row.tipoDia === 'NORMAL' ? row.entrada : null,
+        inicioIntervalo: row.tipoDia === 'NORMAL' ? row.inicioIntervalo : null,
+        fimIntervalo: row.tipoDia === 'NORMAL' ? row.fimIntervalo : null,
+        saida: row.tipoDia === 'NORMAL' ? row.saida : null,
+        tipoDia: row.tipoDia,
       }
 
       return { ...record, minutesTrabalhados: calculateHours(record) }
@@ -103,7 +103,7 @@ function validateManualRows(
     }
     seen.add(row.dia)
 
-    if (row.folga) continue
+    if (row.tipoDia !== 'NORMAL') continue
 
     for (const [field, label] of FIELD_LABELS) {
       if (!row[field]) {

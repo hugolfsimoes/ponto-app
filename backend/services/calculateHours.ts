@@ -8,10 +8,10 @@ import { MINUTES_IN_DAY, normalizeSequentialMinutes } from '../utils/timeUtils'
  *
  * Pré-condição: o record foi validado por excelValidator.validate() antes
  * desta chamada — os horários estão em ordem lógica e nenhum campo obrigatório
- * está ausente quando folga === false.
+ * está ausente quando tipoDia === 'NORMAL'.
  */
 export function calculateHours(record: PontoRecord): number {
-  if (record.folga) return 0
+  if (record.tipoDia !== 'NORMAL') return 0
 
   // Guard: se por algum motivo campos chegarem nulos em modo não-folga,
   // retorna 0 em vez de lançar exceção (validação prévia deve prevenir isso).

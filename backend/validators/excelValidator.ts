@@ -18,7 +18,7 @@ export function validate(records: PontoRecord[]): ValidationError[] {
   const errors: ValidationError[] = []
 
   for (const record of records) {
-    if (record.folga) continue
+    if (record.tipoDia !== 'NORMAL') continue
 
     const { dia, entrada, inicioIntervalo, fimIntervalo, saida } = record
     const campos: Record<CampoKey, typeof entrada> = { entrada, inicioIntervalo, fimIntervalo, saida }

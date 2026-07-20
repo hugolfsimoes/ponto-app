@@ -34,6 +34,7 @@ const MESES_NOME: Record<string, number> = {
 }
 
 const FOLGA_RE = /^folga$/i
+const FERIADO_RE = /^feriado$/i
 
 // ── Tipos internos ────────────────────────────────────────────────────────────
 
@@ -264,20 +265,23 @@ function parseRow(row: unknown[]): ParseRowResult {
     { raw: saidaRaw, campo: 'Saída' },
   ]
 
-  type CelulaHorario = 'vazio' | 'folga' | 'valor'
+  type CelulaHorario = 'vazio' | 'folga' | 'feriado' | 'valor'
   const classificar = (raw: unknown): CelulaHorario => {
     if (raw === null || raw === undefined || raw === '') return 'vazio'
     if (typeof raw === 'string') {
       const t = raw.trim()
       if (t === '') return 'vazio'
       if (FOLGA_RE.test(t)) return 'folga'
+      if (FERIADO_RE.test(t)) return 'feriado'
     }
     return 'valor'
   }
 
   const classes = slots.map((s) => classificar(s.raw))
   const nFolga = classes.filter((c) => c === 'folga').length
+  const nFeriado = classes.filter((c) => c === 'feriado').length
   const nVazio = classes.filter((c) => c === 'vazio').length
+  const nEspecial = nFolga + nFeriado
 
   if (nVazio === 4) {
     return {
@@ -287,7 +291,7 @@ function parseRow(row: unknown[]): ParseRowResult {
         campo: 'Horários',
         mensagem:
           `Dia ${dia}: preencha as quatro colunas (Entrada, intervalos e Saída) com horários ` +
-          `ou escreva FOLGA nas quatro — não deixe células vazias.`,
+          `ou escreva FOLGA ou FERIADO nas quatro — não deixe células vazias.`,
       }],
     }
   }
@@ -299,21 +303,32 @@ function parseRow(row: unknown[]): ParseRowResult {
       errors.push({
         dia,
         campo: slots[i].campo,
-        mensagem: `Dia ${dia}: campo '${slots[i].campo}' está vazio; use horário (HH:mm) ou FOLGA.`,
+        mensagem: `Dia ${dia}: campo '${slots[i].campo}' está vazio; use horário (HH:mm), FOLGA ou FERIADO.`,
       })
     }
     return { type: 'error', errors }
   }
 
-  if (nFolga > 0 && nFolga < 4) {
+  if (nEspecial > 0 && nEspecial < 4) {
     return {
       type: 'error',
       errors: [{
         dia,
-        campo: 'FOLGA',
+        campo: 'FOLGA/FERIADO',
         mensagem:
-          `Dia ${dia}: em dia de folga, as quatro colunas de horário devem conter FOLGA. ` +
-          `Não misture FOLGA com horários nem deixe só algumas colunas com FOLGA.`,
+          `Dia ${dia}: em dia de folga ou feriado, as quatro colunas de horário devem conter o mesmo valor. ` +
+          `Não misture FOLGA, FERIADO e horários reais nem deixe só algumas colunas preenchidas.`,
+      }],
+    }
+  }
+
+  if (nEspecial === 4 && nFolga > 0 && nFeriado > 0) {
+    return {
+      type: 'error',
+      errors: [{
+        dia,
+        campo: 'FOLGA/FERIADO',
+        mensagem: `Dia ${dia}: não misture FOLGA e FERIADO no mesmo dia — use apenas um dos dois nas quatro colunas.`,
       }],
     }
   }
@@ -328,7 +343,23 @@ function parseRow(row: unknown[]): ParseRowResult {
         inicioIntervalo: null,
         fimIntervalo: null,
         saida: null,
-        folga: true,
+        tipoDia: 'FOLGA',
+      },
+      warnings,
+    }
+  }
+
+  if (nFeriado === 4) {
+    return {
+      type: 'ok',
+      record: {
+        dia,
+        diaSemana,
+        entrada: null,
+        inicioIntervalo: null,
+        fimIntervalo: null,
+        saida: null,
+        tipoDia: 'FERIADO',
       },
       warnings,
     }
@@ -377,7 +408,7 @@ function parseRow(row: unknown[]): ParseRowResult {
 
   return {
     type: 'ok',
-    record: { dia, diaSemana, entrada, inicioIntervalo, fimIntervalo, saida, folga: false },
+    record: { dia, diaSemana, entrada, inicioIntervalo, fimIntervalo, saida, tipoDia: 'NORMAL' },
     warnings,
   }
 }

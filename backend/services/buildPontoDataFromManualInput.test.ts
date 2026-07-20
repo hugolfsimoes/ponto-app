@@ -23,7 +23,7 @@ function workingDay(dia: number): ManualPontoRecordInput {
     inicioIntervalo: time(12),
     fimIntervalo: time(13),
     saida: time(17),
-    folga: false,
+    tipoDia: 'NORMAL',
   }
 }
 
@@ -90,7 +90,7 @@ describe('buildPontoDataFromManualInput', () => {
           inicioIntervalo: null,
           fimIntervalo: null,
           saida: null,
-          folga: true,
+          tipoDia: 'FOLGA',
         },
       ]),
     )
@@ -98,7 +98,30 @@ describe('buildPontoDataFromManualInput', () => {
     expect(result.success).toBe(true)
     expect(result.data?.records[2]).toMatchObject({
       dia: 3,
-      folga: true,
+      tipoDia: 'FOLGA',
+      minutesTrabalhados: 0,
+    })
+  })
+
+  it('marks feriado days with zero minutes', () => {
+    const result = buildPontoDataFromManualInput(
+      header,
+      fullMonth([
+        {
+          dia: 4,
+          entrada: null,
+          inicioIntervalo: null,
+          fimIntervalo: null,
+          saida: null,
+          tipoDia: 'FERIADO',
+        },
+      ]),
+    )
+
+    expect(result.success).toBe(true)
+    expect(result.data?.records[3]).toMatchObject({
+      dia: 4,
+      tipoDia: 'FERIADO',
       minutesTrabalhados: 0,
     })
   })

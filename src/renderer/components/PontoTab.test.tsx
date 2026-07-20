@@ -88,6 +88,15 @@ describe('PontoTab', () => {
     })
   })
 
+  it('renders the horario font size selector with a default of 10', () => {
+    const html = renderToStaticMarkup(
+      <PontoTab organizations={[organization]} employees={[employee]} />,
+    )
+
+    expect(html).toContain('Tamanho da fonte dos horários')
+    expect(html).toContain('value="10"')
+  })
+
   it('uses the employee role/function in the manual PDF header source', () => {
     const source = readFileSync(
       join(process.cwd(), 'src/renderer/components/PontoTab.tsx'),

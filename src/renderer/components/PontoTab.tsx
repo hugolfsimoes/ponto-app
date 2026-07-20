@@ -35,6 +35,9 @@ const MESES = [
   { valor: 12, nome: 'Dezembro' },
 ]
 
+const HORARIO_FONT_SIZE_OPTIONS = [7, 8, 9, 10, 11, 12]
+const DEFAULT_HORARIO_FONT_SIZE = 10
+
 const FALLBACK_DEFAULT_SCHEDULE: DefaultSchedule = {
   entrada: '08:00',
   inicioIntervalo: '12:00',
@@ -75,6 +78,7 @@ export function PontoTab({
   const [selectedOrganizationId, setSelectedOrganizationId] = useState('')
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('')
   const [mes, setMes] = useState(new Date().getMonth() + 1)
+  const [horarioFontSize, setHorarioFontSize] = useState(DEFAULT_HORARIO_FONT_SIZE)
   const [excelData, setExcelData] = useState<unknown>(null)
   const [rows, setRows] = useState<PontoEditorRow[]>(() =>
     createMonthlyRows(mes, ANO_ATUAL),
@@ -168,6 +172,7 @@ export function PontoTab({
       const pdfResult = (await window.pontoAPI.generatePdf({
         data: buildResult.data,
         logoPath: selectedOrganization.logoPath,
+        horarioFontSize,
       })) as PdfResult
 
       if (pdfResult.canceled) {
@@ -288,6 +293,7 @@ export function PontoTab({
       const resultado = (await window.pontoAPI.generatePdf({
         data: excelData,
         logoPath: selectedOrganization?.logoPath,
+        horarioFontSize,
       })) as PdfResult
       if (resultado.canceled) {
         setStatus({ tipo: 'idle' })
@@ -409,6 +415,25 @@ export function PontoTab({
             {MESES.map((m) => (
               <option key={m.valor} value={m.valor}>
                 {m.nome}
+              </option>
+            ))}
+          </select>
+        </div>
+
+        <div style={s.campo}>
+          <label htmlFor='horarioFontSize' style={s.label}>
+            Tamanho da fonte dos horários
+          </label>
+          <select
+            id='horarioFontSize'
+            value={horarioFontSize}
+            onChange={(e) => setHorarioFontSize(Number(e.target.value))}
+            disabled={isLoading}
+            style={s.select}
+          >
+            {HORARIO_FONT_SIZE_OPTIONS.map((size) => (
+              <option key={size} value={size}>
+                {size}pt
               </option>
             ))}
           </select>

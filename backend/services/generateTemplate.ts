@@ -3,7 +3,6 @@ import type { PontoHeader } from '../types/ponto'
 import type { DiaSemana } from '../utils/dateUtils'
 import { getDayName, getDaysInMonth } from '../utils/dateUtils'
 
-const EMPRESA = 'PROTMAX SERVIÇOS EM CONDOMÍNIO'
 const TITULO = 'FOLHA DE PONTO - CONTROLE DE PRESENÇA'
 
 const MESES = [
@@ -122,7 +121,7 @@ export async function generateTemplate(
   }
 
   // ── Linha 2: Empresa ─────────────────────────────────────────────────────
-  sheet.addRow([`EMPRESA: ${EMPRESA}`, null, null, null, null, null])
+  sheet.addRow([`EMPRESA: ${header.empresa}`, null, null, null, null, null])
   sheet.mergeCells(`A2:${LAST_COL_LETTER}2`)
   applyRowStyle(sheet.getRow(2), {
     fontSize: 10,

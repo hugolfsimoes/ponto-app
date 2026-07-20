@@ -87,7 +87,11 @@ function tc(
 
 // ── Construção do corpo da tabela ─────────────────────────────────────────────
 
-function buildTableBody(data: PontoData): TableCell[][] {
+function buildTableBody(
+  data: PontoData,
+  options?: { horarioFontSize?: number },
+): TableCell[][] {
+  const horarioFontSize = options?.horarioFontSize ?? 10;
   const headerRow: TableCell[] = [
     tc('DIA', { bold: true }),
     tc('DIA DA\nSEMANA', { bold: true }),
@@ -113,10 +117,10 @@ function buildTableBody(data: PontoData): TableCell[][] {
     return [
       tc(String(rec.dia)),
       tc(rec.diaSemana),
-      tc(folga ? 'FOLGA' : fmtTime(rec.entrada), { bold: folga, fontSize: 10 }),
-      tc(folga ? 'FOLGA' : fmtTime(rec.inicioIntervalo), { bold: folga, fontSize: 10 }),
-      tc(folga ? 'FOLGA' : fmtTime(rec.fimIntervalo), { bold: folga, fontSize: 10 }),
-      tc(folga ? 'FOLGA' : fmtTime(rec.saida), { bold: folga, fontSize: 10 }),
+      tc(folga ? 'FOLGA' : fmtTime(rec.entrada), { bold: folga, fontSize: horarioFontSize }),
+      tc(folga ? 'FOLGA' : fmtTime(rec.inicioIntervalo), { bold: folga, fontSize: horarioFontSize }),
+      tc(folga ? 'FOLGA' : fmtTime(rec.fimIntervalo), { bold: folga, fontSize: horarioFontSize }),
+      tc(folga ? 'FOLGA' : fmtTime(rec.saida), { bold: folga, fontSize: horarioFontSize }),
       tc(totalSemana, { bold: !!totalSemana, fontSize: totalSemana ? 8 : FS }),
       tc(' ', { fontSize: 10 }), // Assinatura — espaço para preenchimento manual
       tc(''),                    // Justificativa — espaço para preenchimento manual
@@ -194,7 +198,8 @@ function buildTitleSection(header: PontoHeader, logoBuffer?: Buffer): Content[] 
  */
 export async function generatePdf(
   data: PontoData,
-  logoBuffer?: Buffer
+  logoBuffer?: Buffer,
+  options?: { horarioFontSize?: number },
 ): Promise<Buffer> {
   const { header } = data;
   const mesNome = MESES[ header.mes ] ?? String(header.mes);
@@ -242,7 +247,7 @@ export async function generatePdf(
           // Impede que uma linha seja partida entre duas páginas (ex: meses com 31 dias)
           dontBreakRows: true,
           widths: COL_WIDTHS,
-          body: buildTableBody(data),
+          body: buildTableBody(data, options),
         },
         layout: tableLayout,
       },

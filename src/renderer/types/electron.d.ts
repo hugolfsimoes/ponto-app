@@ -107,7 +107,11 @@ export interface PontoAPI {
     header: PontoHeader
     records: ManualPontoRecordInput[]
   }) => Promise<BuildPontoDataResult>
-  generatePdf: (input: { data: unknown; logoPath?: string }) => Promise<PdfResult>
+  generatePdf: (input: {
+    data: unknown
+    logoPath?: string
+    horarioFontSize?: number
+  }) => Promise<PdfResult>
   loadLocalData: () => Promise<LocalData>
   selectLogoFile: () => Promise<{ canceled?: boolean; filePath?: string }>
   createOrganization: (input: {

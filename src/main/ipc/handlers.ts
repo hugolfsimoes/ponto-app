@@ -158,9 +158,10 @@ export function registerHandlers(): void {
   )
 
   // ── Fase 6: Geração do PDF ─────────────────────────────────────────────
-  ipcMain.handle('generate-pdf', async (event, input: PontoData | { data: PontoData; logoPath?: string }) => {
+  ipcMain.handle('generate-pdf', async (event, input: PontoData | { data: PontoData; logoPath?: string; horarioFontSize?: number }) => {
     const data = 'data' in input ? input.data : input
     const logoPath = 'data' in input ? input.logoPath : undefined
+    const horarioFontSize = 'data' in input ? input.horarioFontSize : undefined
     if (!data || !data.header || !data.records) {
       return { success: false, error: 'Dados inválidos para geração do PDF' }
     }
@@ -168,7 +169,7 @@ export function registerHandlers(): void {
     let buffer: Buffer
     try {
       const logoBuffer = await loadLogoFromPath(logoPath)
-      buffer = await generatePdf(data, logoBuffer)
+      buffer = await generatePdf(data, logoBuffer, { horarioFontSize })
     } catch (err) {
       const msg = err instanceof Error ? err.message : String(err)
       return { success: false, error: `Erro ao gerar o PDF: ${msg}` }

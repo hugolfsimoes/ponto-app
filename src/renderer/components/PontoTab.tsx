@@ -609,7 +609,6 @@ const s: Record<string, React.CSSProperties> = {
     width: '100%',
   },
   botaoAzul: { background: '#2563a8' },
-  botaoVerde: { background: '#15803d' },
   botaoLaranja: { background: '#c2410c' },
   botaoDesabilitado: {
     opacity: 0.35,

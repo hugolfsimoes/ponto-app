@@ -59,7 +59,7 @@ describe('PontoTab', () => {
 
     expect(html).toContain('Aplicar horário padrão')
     expect(html).toContain('Gerar PDF')
-    expect(html).toContain('Usar planilha Excel')
+    expect(html).not.toContain('Usar planilha Excel')
   })
 
   it('renders separate Folga and Feriado columns in the editor grid', () => {

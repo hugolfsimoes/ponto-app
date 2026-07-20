@@ -70,21 +70,6 @@ export interface LocalData {
   employees: Employee[]
 }
 
-export interface TemplateResult {
-  success: boolean
-  filePath?: string
-  canceled?: boolean
-  error?: string
-}
-
-export interface ProcessResult {
-  success: boolean
-  canceled?: boolean
-  data?: unknown
-  error?: string
-  errors?: Array<{ dia: number; campo: string; mensagem: string }>
-}
-
 export interface BuildPontoDataResult {
   success: boolean
   data?: unknown
@@ -100,11 +85,6 @@ export interface PdfResult {
 }
 
 export interface PontoAPI {
-  generateTemplate: (input: {
-    header: PontoHeader
-    logoPath?: string
-  }) => Promise<TemplateResult>
-  processExcel: (filePath: string) => Promise<ProcessResult>
   buildPontoData: (input: {
     header: PontoHeader
     records: ManualPontoRecordInput[]

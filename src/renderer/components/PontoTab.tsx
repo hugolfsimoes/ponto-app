@@ -5,8 +5,6 @@ import type {
   Organization,
   PdfResult,
   PontoHeader,
-  ProcessResult,
-  TemplateResult,
 } from '../types/electron'
 import {
   applyDefaultSchedule,
@@ -46,7 +44,7 @@ const FALLBACK_DEFAULT_SCHEDULE: DefaultSchedule = {
   saida: '17:00',
 }
 
-type Operacao = 'planilha' | 'excel' | 'pdf' | 'validacao'
+type Operacao = 'pdf' | 'validacao'
 
 type Status =
   | { tipo: 'idle' }
@@ -80,11 +78,9 @@ export function PontoTab({
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('')
   const [mes, setMes] = useState(new Date().getMonth() + 1)
   const [horarioFontSize, setHorarioFontSize] = useState(DEFAULT_HORARIO_FONT_SIZE)
-  const [excelData, setExcelData] = useState<unknown>(null)
   const [rows, setRows] = useState<PontoEditorRow[]>(() =>
     createMonthlyRows(mes, ANO_ATUAL),
   )
-  const [doneOps, setDoneOps] = useState<Set<Operacao>>(new Set())
   const [status, setStatus] = useState<Status>({ tipo: 'idle' })
 
   const selectedOrganization = organizations.find(
@@ -102,9 +98,6 @@ export function PontoTab({
   )
 
   const isLoading = status.tipo === 'loading'
-  const podeGerarPlanilha =
-    !isLoading && !!selectedOrganization && !!selectedEmployee
-  const podeGerarPdf = !isLoading && excelData !== null
 
   useEffect(() => {
     if (status.tipo !== 'sucesso') return
@@ -127,13 +120,7 @@ export function PontoTab({
 
   useEffect(() => {
     setRows(createMonthlyRows(mes, ANO_ATUAL))
-    setExcelData(null)
-    setDoneOps(new Set())
   }, [mes, selectedEmployeeId, selectedOrganizationId])
-
-  function markDone(op: Operacao): void {
-    setDoneOps((prev) => new Set([...prev, op]))
-  }
 
   async function handleGerarPdfDireto(): Promise<void> {
     if (!selectedOrganization || !selectedEmployee) return
@@ -189,130 +176,10 @@ export function PontoTab({
         return
       }
 
-      markDone('pdf')
       setStatus({
         tipo: 'sucesso',
         operacao: 'pdf',
         filePath: pdfResult.filePath,
-      })
-    } catch (err) {
-      setStatus({
-        tipo: 'erro',
-        operacao: 'pdf',
-        mensagem:
-          err instanceof Error ? err.message : 'Erro inesperado ao gerar PDF.',
-      })
-    }
-  }
-
-  async function handleGerarPlanilha(): Promise<void> {
-    if (!podeGerarPlanilha || !selectedOrganization || !selectedEmployee) return
-    setStatus({ tipo: 'loading', operacao: 'planilha' })
-
-    const header: PontoHeader = {
-      empresa: selectedOrganization.nome,
-      nome: selectedEmployee.nome,
-      secao: selectedEmployee.setor,
-      funcao: selectedEmployee.cargoFuncao,
-      mes,
-      ano: ANO_ATUAL,
-    }
-
-    try {
-      const resultado = (await window.pontoAPI.generateTemplate({
-        header,
-        logoPath: selectedOrganization.logoPath,
-      })) as TemplateResult
-      if (resultado.canceled) {
-        setStatus({ tipo: 'idle' })
-        return
-      }
-      if (!resultado.success) {
-        setStatus({
-          tipo: 'erro',
-          operacao: 'planilha',
-          mensagem: resultado.error ?? 'Não foi possível gerar a planilha.',
-        })
-        return
-      }
-      markDone('planilha')
-      setStatus({
-        tipo: 'sucesso',
-        operacao: 'planilha',
-        filePath: resultado.filePath,
-      })
-    } catch (err) {
-      setStatus({
-        tipo: 'erro',
-        operacao: 'planilha',
-        mensagem:
-          err instanceof Error
-            ? err.message
-            : 'Erro inesperado ao gerar planilha.',
-      })
-    }
-  }
-
-  async function handleSelecionarExcel(): Promise<void> {
-    setStatus({ tipo: 'loading', operacao: 'excel' })
-
-    try {
-      const resultado = (await window.pontoAPI.processExcel('')) as ProcessResult
-      if (resultado.canceled) {
-        setStatus({ tipo: 'idle' })
-        return
-      }
-      if (!resultado.success) {
-        const lista = resultado.errors?.map((e) => e.mensagem)
-        const mensagem =
-          lista && lista.length > 0
-            ? `${lista.length} erro(s) encontrado(s) na planilha`
-            : (resultado.error ?? 'Não foi possível processar o arquivo.')
-        setStatus({ tipo: 'erro', operacao: 'excel', mensagem, lista })
-        return
-      }
-      setExcelData(resultado.data)
-      markDone('excel')
-      setStatus({ tipo: 'sucesso', operacao: 'excel' })
-    } catch (err) {
-      setStatus({
-        tipo: 'erro',
-        operacao: 'excel',
-        mensagem:
-          err instanceof Error
-            ? err.message
-            : 'Erro inesperado ao processar arquivo.',
-      })
-    }
-  }
-
-  async function handleGerarPdf(): Promise<void> {
-    if (!podeGerarPdf) return
-    setStatus({ tipo: 'loading', operacao: 'pdf' })
-
-    try {
-      const resultado = (await window.pontoAPI.generatePdf({
-        data: excelData,
-        logoPath: selectedOrganization?.logoPath,
-        horarioFontSize,
-      })) as PdfResult
-      if (resultado.canceled) {
-        setStatus({ tipo: 'idle' })
-        return
-      }
-      if (!resultado.success) {
-        setStatus({
-          tipo: 'erro',
-          operacao: 'pdf',
-          mensagem: resultado.error ?? 'Não foi possível gerar o PDF.',
-        })
-        return
-      }
-      markDone('pdf')
-      setStatus({
-        tipo: 'sucesso',
-        operacao: 'pdf',
-        filePath: resultado.filePath,
       })
     } catch (err) {
       setStatus({
@@ -552,85 +419,11 @@ export function PontoTab({
         ))}
       </div>
 
-      <details style={s.excelDetails}>
-        <summary style={s.excelSummary}>Usar planilha Excel</summary>
-        <div style={s.botoes}>
-          <button
-            onClick={handleGerarPlanilha}
-            disabled={!podeGerarPlanilha}
-            title={
-              !selectedOrganization || !selectedEmployee
-                ? 'Selecione empresa e funcionário primeiro'
-                : ''
-            }
-            style={{
-              ...s.botao,
-              ...s.botaoAzul,
-              ...(!podeGerarPlanilha ? s.botaoDesabilitado : {}),
-            }}
-          >
-            {isLoading && status.operacao === 'planilha' ? (
-              <>
-                <span className='spinner' />
-                Gerando…
-              </>
-            ) : (
-              '① Gerar Planilha'
-            )}
-          </button>
-
-          <button
-            onClick={handleSelecionarExcel}
-            disabled={isLoading}
-            style={{
-              ...s.botao,
-              ...s.botaoVerde,
-              ...(isLoading ? s.botaoDesabilitado : {}),
-            }}
-          >
-            {isLoading && status.operacao === 'excel' ? (
-              <>
-                <span className='spinner' />
-                Processando…
-              </>
-            ) : (
-              '② Selecionar Excel'
-            )}
-          </button>
-
-          <button
-            onClick={handleGerarPdf}
-            disabled={!podeGerarPdf}
-            title={!podeGerarPdf ? 'Selecione um Excel primeiro' : ''}
-            style={{
-              ...s.botao,
-              ...s.botaoLaranja,
-              ...(!podeGerarPdf ? s.botaoDesabilitado : {}),
-            }}
-          >
-            {isLoading && status.operacao === 'pdf' ? (
-              <>
-                <span className='spinner' />
-                Gerando PDF…
-              </>
-            ) : (
-              '③ Gerar PDF'
-            )}
-          </button>
-        </div>
-      </details>
-
-      {excelData !== null && (
-        <div style={s.badgeExcel}>✓ Planilha carregada — pronta para gerar PDF</div>
-      )}
-
       {status.tipo === 'loading' && (
         <div style={s.infoLoading}>
           <span className='spinner' />
           {
             {
-              planilha: 'Gerando planilha…',
-              excel: 'Processando arquivo…',
               validacao: 'Validando grade…',
               pdf: 'Gerando PDF…',
             }[status.operacao]
@@ -643,8 +436,6 @@ export function PontoTab({
           <strong>
             {
               {
-                planilha: '✓ Planilha gerada!',
-                excel: '✓ Arquivo carregado!',
                 validacao: '✓ Grade validada!',
                 pdf: '✓ PDF gerado!',
               }[status.operacao]
@@ -660,8 +451,6 @@ export function PontoTab({
             <strong>
               {
                 {
-                  planilha: 'Erro ao gerar planilha',
-                  excel: 'Erro ao processar Excel',
                   validacao: 'Erro ao validar grade',
                   pdf: 'Erro ao gerar PDF',
                 }[status.operacao]
@@ -693,26 +482,6 @@ export function PontoTab({
 }
 
 const s: Record<string, React.CSSProperties> = {
-  steps: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: '0',
-    marginBottom: '1.5rem',
-  },
-  stepLine: {
-    flex: 1,
-    height: '2px',
-    background: '#d9e6f5',
-    maxWidth: '60px',
-    margin: '0 4px',
-    marginBottom: '18px',
-  },
-  divider: {
-    height: '1px',
-    background: '#d9e6f5',
-    marginBottom: '1.5rem',
-  },
   campos: {
     display: 'flex',
     flexDirection: 'column',
@@ -755,11 +524,6 @@ const s: Record<string, React.CSSProperties> = {
     outline: 'none',
     transition: 'border-color 0.15s, box-shadow 0.15s',
     minHeight: 40,
-  },
-  botoes: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.65rem',
   },
   editorActions: {
     display: 'grid',
@@ -818,18 +582,6 @@ const s: Record<string, React.CSSProperties> = {
     alignItems: 'center',
     minHeight: 34,
   },
-  excelDetails: {
-    marginTop: '1.25rem',
-    borderTop: '1px solid #d9e6f5',
-    paddingTop: '0.9rem',
-  },
-  excelSummary: {
-    color: '#07346f',
-    cursor: 'pointer',
-    fontSize: '0.86rem',
-    fontWeight: 700,
-    marginBottom: '0.75rem',
-  },
   emptyState: {
     padding: '0.85rem 1rem',
     background: '#f2f8ff',
@@ -862,16 +614,6 @@ const s: Record<string, React.CSSProperties> = {
   botaoDesabilitado: {
     opacity: 0.35,
     cursor: 'not-allowed',
-  },
-  badgeExcel: {
-    marginTop: '1rem',
-    padding: '0.5rem 0.8rem',
-    background: '#f0fdf4',
-    border: '1px solid #bbf7d0',
-    borderRadius: '6px',
-    color: '#15803d',
-    fontSize: '0.8rem',
-    fontWeight: 500,
   },
   infoLoading: {
     marginTop: '1rem',

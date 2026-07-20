@@ -21,6 +21,7 @@ import {
   deleteSection,
   getDataFilePath,
   loadLocalData,
+  saveLocalData,
 } from './localDataStore'
 
 async function createLogo(name = 'logo.png'): Promise<string> {
@@ -48,6 +49,25 @@ describe('localDataStore', () => {
     })
 
     await expect(fs.access(getDataFilePath())).resolves.toBeUndefined()
+  })
+
+  it('writes data to a temporary file and renames it into place instead of overwriting directly', async () => {
+    const dataFilePath = getDataFilePath()
+    const writeSpy = vi.spyOn(fs, 'writeFile')
+    const renameSpy = vi.spyOn(fs, 'rename')
+
+    await saveLocalData({ version: 1, organizations: [], sections: [], employees: [] })
+
+    const writesToFinalPath = writeSpy.mock.calls.filter(([path]) => path === dataFilePath)
+    expect(writesToFinalPath).toHaveLength(0)
+
+    const renamesIntoFinalPath = renameSpy.mock.calls.filter(([, dest]) => dest === dataFilePath)
+    expect(renamesIntoFinalPath.length).toBeGreaterThan(0)
+
+    writeSpy.mockRestore()
+    renameSpy.mockRestore()
+
+    await expect(loadLocalData()).resolves.toMatchObject({ organizations: [] })
   })
 
   it('creates an organization and copies its logo into managed storage', async () => {

@@ -115,8 +115,11 @@ export async function loadLocalData(): Promise<LocalData> {
 }
 
 export async function saveLocalData(data: LocalData): Promise<void> {
-  await fs.mkdir(dirname(getDataFilePath()), { recursive: true })
-  await fs.writeFile(getDataFilePath(), JSON.stringify(data, null, 2), 'utf-8')
+  const filePath = getDataFilePath()
+  await fs.mkdir(dirname(filePath), { recursive: true })
+  const tempPath = `${filePath}.tmp-${process.pid}-${Date.now()}`
+  await fs.writeFile(tempPath, JSON.stringify(data, null, 2), 'utf-8')
+  await fs.rename(tempPath, filePath)
 }
 
 async function copyLogoForOrganization(sourcePath: string, organizationId: string): Promise<string> {

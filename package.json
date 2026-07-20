@@ -1,6 +1,6 @@
 {
   "name": "ponto-app",
-  "version": "1.0.0",
+  "version": "2.5.0",
   "description": "Aplicação desktop para geração de folha de ponto",
   "main": "out/main/index.js",
   "scripts": {

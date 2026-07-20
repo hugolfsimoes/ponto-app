@@ -92,7 +92,6 @@ export interface PontoAPI {
   generatePdf: (input: {
     data: unknown
     logoPath?: string
-    horarioFontSize?: number
   }) => Promise<PdfResult>
   loadLocalData: () => Promise<LocalData>
   selectLogoFile: () => Promise<{ canceled?: boolean; filePath?: string }>

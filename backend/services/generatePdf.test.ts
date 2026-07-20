@@ -17,11 +17,4 @@ describe('generatePdf layout', () => {
     expect(source).toContain('SETOR / FUNÇÃO')
     expect(source).toContain('formatSetorFuncao')
   })
-
-  it('applies a custom horarioFontSize to the time columns only', () => {
-    const source = readFileSync(join(process.cwd(), 'backend/services/generatePdf.ts'), 'utf-8')
-
-    expect(source).toMatch(/options\?\.horarioFontSize\s*\?\?\s*10/)
-    expect(source).toMatch(/options\?:\s*\{\s*horarioFontSize\?:\s*number\s*\}/)
-  })
 })

@@ -80,7 +80,7 @@ describe('backupStore', () => {
     await importBackupFromFile(backupPath)
 
     const data = await loadLocalData()
-    expect(data.organizations[0].logoPath).toContain('pontoapp-data/logos/org-1.png')
+    expect(data.organizations[0].logoPath.replace(/\\/g, '/')).toContain('pontoapp-data/logos/org-1.png')
     await expect(fs.readFile(data.organizations[0].logoPath, 'utf-8')).resolves.toBe(
       'image-bytes',
     )

@@ -79,7 +79,7 @@ describe('localDataStore', () => {
     })
 
     expect(organization.nome).toBe('Empresa Azul')
-    expect(organization.logoPath).toContain('pontoapp-data/logos/')
+    expect(organization.logoPath.replace(/\\/g, '/')).toContain('pontoapp-data/logos/')
     await expect(fs.readFile(organization.logoPath, 'utf-8')).resolves.toBe(
       'image-bytes',
     )

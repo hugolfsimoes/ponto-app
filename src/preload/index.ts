@@ -48,6 +48,8 @@ const pontoAPI = {
 
   importBackup: (): Promise<unknown> => ipcRenderer.invoke('import-backup'),
 
+  getUpdateStatus: (): Promise<unknown> => ipcRenderer.invoke('update-status-get'),
+
   downloadUpdate: (): Promise<void> => ipcRenderer.invoke('update-download'),
 
   onUpdateStatus: (callback: (status: unknown) => void): (() => void) => {

@@ -148,6 +148,7 @@ export interface PontoAPI {
     canceled?: boolean
     error?: string
   }>
+  getUpdateStatus: () => Promise<UpdateStatus | null>
   downloadUpdate: () => Promise<void>
   onUpdateStatus: (callback: (status: UpdateStatus) => void) => () => void
 }

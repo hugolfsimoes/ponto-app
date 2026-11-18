@@ -9,7 +9,10 @@ export type UpdateStatus =
 
 export const UPDATE_STATUS_CHANNEL = 'update-status'
 
+let lastStatus: UpdateStatus | null = null
+
 function broadcast(status: UpdateStatus): void {
+  lastStatus = status
   for (const window of BrowserWindow.getAllWindows()) {
     window.webContents.send(UPDATE_STATUS_CHANNEL, status)
   }
@@ -39,6 +42,9 @@ export function registerUpdater(): void {
   autoUpdater.on('error', (error) => {
     broadcast({ state: 'error', message: error.message })
   })
+
+  // A tela pode terminar de carregar depois do evento; ela busca o último estado.
+  ipcMain.handle('update-status-get', () => lastStatus)
 
   ipcMain.handle('update-download', async () => {
     try {

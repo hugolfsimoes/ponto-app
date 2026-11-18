@@ -33,7 +33,14 @@ export function UpdateBannerView({
 export function UpdateBanner(): JSX.Element | null {
   const [status, setStatus] = useState<UpdateStatus | null>(null)
 
-  useEffect(() => window.pontoAPI.onUpdateStatus(setStatus), [])
+  useEffect(() => {
+    const unsubscribe = window.pontoAPI.onUpdateStatus(setStatus)
+    // Cobre o caso de o aviso ter chegado antes desta tela montar.
+    void window.pontoAPI.getUpdateStatus().then((current) => {
+      if (current) setStatus((prev) => prev ?? current)
+    })
+    return unsubscribe
+  }, [])
 
   return (
     <UpdateBannerView

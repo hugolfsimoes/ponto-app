@@ -1,6 +1,6 @@
 {
   "name": "ponto-app",
-  "version": "2.5.0",
+  "version": "2.6.0",
   "description": "Aplicação desktop para geração de folha de ponto",
   "main": "out/main/index.js",
   "scripts": {
@@ -22,6 +22,7 @@
   "dependencies": {
     "adm-zip": "^0.5.17",
     "dayjs": "^1.11.13",
+    "electron-updater": "^6.8.11",
     "pdfmake": "^0.2.18"
   },
   "devDependencies": {

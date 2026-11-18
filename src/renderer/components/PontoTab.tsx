@@ -18,6 +18,7 @@ import {
 } from './pontoEditor'
 
 const ANO_ATUAL = new Date().getFullYear()
+const ANOS = Array.from({ length: 6 }, (_, i) => ANO_ATUAL - 1 + i)
 
 const MESES = [
   { valor: 1, nome: 'Janeiro' },
@@ -74,8 +75,9 @@ export function PontoTab({
   const [selectedOrganizationId, setSelectedOrganizationId] = useState('')
   const [selectedEmployeeId, setSelectedEmployeeId] = useState('')
   const [mes, setMes] = useState(new Date().getMonth() + 1)
+  const [ano, setAno] = useState(ANO_ATUAL)
   const [rows, setRows] = useState<PontoEditorRow[]>(() =>
-    createMonthlyRows(mes, ANO_ATUAL),
+    createMonthlyRows(mes, ano),
   )
   const [status, setStatus] = useState<Status>({ tipo: 'idle' })
 
@@ -115,8 +117,8 @@ export function PontoTab({
   }, [employees, selectedEmployeeId, selectedOrganizationId])
 
   useEffect(() => {
-    setRows(createMonthlyRows(mes, ANO_ATUAL))
-  }, [mes, selectedEmployeeId, selectedOrganizationId])
+    setRows(createMonthlyRows(mes, ano))
+  }, [mes, ano, selectedEmployeeId, selectedOrganizationId])
 
   async function handleGerarPdfDireto(): Promise<void> {
     if (!selectedOrganization || !selectedEmployee) return
@@ -128,7 +130,7 @@ export function PontoTab({
       secao: selectedEmployee.setor,
       funcao: selectedEmployee.cargoFuncao,
       mes,
-      ano: ANO_ATUAL,
+      ano,
     }
 
     try {
@@ -264,23 +266,44 @@ export function PontoTab({
           />
         </div>
 
-        <div style={s.campo}>
-          <label htmlFor='mes' style={s.label}>
-            Mês
-          </label>
-          <select
-            id='mes'
-            value={mes}
-            onChange={(e) => setMes(Number(e.target.value))}
-            disabled={isLoading}
-            style={s.select}
-          >
-            {MESES.map((m) => (
-              <option key={m.valor} value={m.valor}>
-                {m.nome}
-              </option>
-            ))}
-          </select>
+        <div style={s.campoMesAno}>
+          <div style={{ ...s.campo, flex: 2 }}>
+            <label htmlFor='mes' style={s.label}>
+              Mês
+            </label>
+            <select
+              id='mes'
+              value={mes}
+              onChange={(e) => setMes(Number(e.target.value))}
+              disabled={isLoading}
+              style={s.select}
+            >
+              {MESES.map((m) => (
+                <option key={m.valor} value={m.valor}>
+                  {m.nome}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ ...s.campo, flex: 1 }}>
+            <label htmlFor='ano' style={s.label}>
+              Ano
+            </label>
+            <select
+              id='ano'
+              value={ano}
+              onChange={(e) => setAno(Number(e.target.value))}
+              disabled={isLoading}
+              style={s.select}
+            >
+              {ANOS.map((a) => (
+                <option key={a} value={a}>
+                  {a}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
       </div>
 
@@ -468,6 +491,10 @@ const s: Record<string, React.CSSProperties> = {
     display: 'flex',
     flexDirection: 'column',
     gap: '0.35rem',
+  },
+  campoMesAno: {
+    display: 'flex',
+    gap: '0.65rem',
   },
   label: {
     fontSize: '0.78rem',

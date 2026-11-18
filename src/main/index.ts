@@ -2,6 +2,7 @@ import { app, shell, BrowserWindow, screen } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { registerHandlers } from './ipc/handlers'
+import { registerUpdater } from './updater'
 
 function createWindow(): void {
   const workAreaSize = screen.getPrimaryDisplay().workAreaSize
@@ -47,6 +48,7 @@ app.whenReady().then(() => {
   })
 
   registerHandlers()
+  registerUpdater()
 
   createWindow()
 

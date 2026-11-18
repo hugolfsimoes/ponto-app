@@ -46,7 +46,15 @@ const pontoAPI = {
 
   exportBackup: (): Promise<unknown> => ipcRenderer.invoke('export-backup'),
 
-  importBackup: (): Promise<unknown> => ipcRenderer.invoke('import-backup')
+  importBackup: (): Promise<unknown> => ipcRenderer.invoke('import-backup'),
+
+  downloadUpdate: (): Promise<void> => ipcRenderer.invoke('update-download'),
+
+  onUpdateStatus: (callback: (status: unknown) => void): (() => void) => {
+    const listener = (_event: unknown, status: unknown): void => callback(status)
+    ipcRenderer.on('update-status', listener)
+    return () => ipcRenderer.removeListener('update-status', listener)
+  }
 }
 
 if (process.contextIsolated) {

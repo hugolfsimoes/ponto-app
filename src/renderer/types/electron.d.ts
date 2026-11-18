@@ -84,6 +84,12 @@ export interface PdfResult {
   error?: string
 }
 
+export type UpdateStatus =
+  | { state: 'available'; version: string }
+  | { state: 'downloading'; percent: number }
+  | { state: 'installing' }
+  | { state: 'error'; message: string }
+
 export interface PontoAPI {
   buildPontoData: (input: {
     header: PontoHeader
@@ -142,6 +148,8 @@ export interface PontoAPI {
     canceled?: boolean
     error?: string
   }>
+  downloadUpdate: () => Promise<void>
+  onUpdateStatus: (callback: (status: UpdateStatus) => void) => () => void
 }
 
 declare global {

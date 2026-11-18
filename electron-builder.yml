@@ -21,9 +21,9 @@ win:
   icon: resources/pontoapp.png
   # Linux → win32: evita signApp/rcedit via Wine (ver electron.build/multi-platform-build)
   signAndEditExecutable: false
-  # Só portable por defeito: NSIS no Linux exige Wine. Instalador: `pnpm run build:win:installer` no Windows.
+  # NSIS é necessário para o auto-update. Roda no GitHub Actions (windows-latest).
   target:
-    - portable
+    - nsis
 
 portable:
   artifactName: ${name}-${version}-portable.${ext}
@@ -48,5 +48,6 @@ appImage:
 npmRebuild: false
 
 publish:
-  provider: generic
-  url: https://example.com/auto-updates
+  provider: github
+  owner: hugolfsimoes
+  repo: ponto-app

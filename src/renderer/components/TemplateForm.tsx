@@ -4,6 +4,7 @@ import pontoAppLogo from '../../assets/img/appImage.png'
 import { CadastrosTab } from './CadastrosTab'
 import { PontoTab } from './PontoTab'
 import { AppTab, Tabs } from './Tabs'
+import { UpdateBanner } from './UpdateBanner'
 
 export function TemplateForm(): JSX.Element {
   const [activeTab, setActiveTab] = useState<AppTab>('ponto')
@@ -41,6 +42,8 @@ export function TemplateForm(): JSX.Element {
             <p>Folha de ponto por empresa e funcionário</p>
           </div>
         </header>
+
+        <UpdateBanner />
 
         <Tabs activeTab={activeTab} onChange={setActiveTab} />
 

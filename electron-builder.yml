@@ -51,3 +51,4 @@ publish:
   provider: github
   owner: hugolfsimoes
   repo: ponto-app
+  releaseType: release
